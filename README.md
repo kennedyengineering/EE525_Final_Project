@@ -1,6 +1,6 @@
 # MPU6050 Kalman Filter
 
-Stochastic Processes Final Project  
+Stochastic Processes Final Project
 EE 525, Fall 2024, Clay McKell
 
 - Braedan Kennedy (bkenne07@calpoly.edu)
@@ -17,6 +17,12 @@ Diagram from [42bots.com](https://42bots.com/tutorials/arduino-uno-and-the-inven
 2. Install [Adafruit MPU6050 Library](https://github.com/adafruit/Adafruit_MPU6050)
 3. Open and upload `src/Arduino/main/main.ino` via Arduino IDE
 
-## Useage
+## Log Data (Windows/Putty)
 
-Open `Serial Plotter` in Arduino IDE and select `115200 baud`
+1. Install [Putty][https://www.putty.org/]
+2. Open with options:
+    - Connection type : Serial
+    - Speed : 115200
+    - Serial line : [Arduino COM port]
+    - Session logging : Printable output
+    - Log file name : [A valid file name]
