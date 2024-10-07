@@ -25,6 +25,7 @@ ser.reset_input_buffer()
 
 # Read data from Arduino
 try:
+    print("Starting logger.")
     while True:
         if ser.in_waiting > 0:  # Check if there is data to read
             line = (
