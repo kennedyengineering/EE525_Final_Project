@@ -42,7 +42,7 @@ void loop() {
   Serial.print(",");
   Serial.print("AccelZ:");
   Serial.print(a.acceleration.z);
-  Serial.print(", ");
+  Serial.print(",");
   Serial.print("GyroX:");
   Serial.print(g.gyro.x);
   Serial.print(",");
