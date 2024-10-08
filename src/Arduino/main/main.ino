@@ -4,6 +4,8 @@
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
 
+#define PRINT_FLOAT_DECIMALS 4
+
 Adafruit_MPU6050 mpu;
 
 void setup(void) {
@@ -24,7 +26,7 @@ void setup(void) {
   mpu.setGyroRange(MPU6050_RANGE_250_DEG);
   mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
 
-  Serial.println("AccelX,AccelY,AccelZ,GyroX,GyroY,GyroZ");
+  Serial.println("Timestamp,AccelX,AccelY,AccelZ,GyroX,GyroY,GyroZ");
 
   delay(100);
 }
@@ -36,23 +38,20 @@ void loop() {
   mpu.getEvent(&a, &g, &temp);
 
   /* Print out timestamp */
-  Serial.print("Time:");
   Serial.print(a.timestamp);
   Serial.print(",");
 
   /* Print out the values */
-  Serial.print(a.acceleration.x);
+  Serial.print(a.acceleration.x, PRINT_FLOAT_DECIMALS);
   Serial.print(",");
-  Serial.print(a.acceleration.y);
+  Serial.print(a.acceleration.y, PRINT_FLOAT_DECIMALS);
   Serial.print(",");
-  Serial.print(a.acceleration.z);
+  Serial.print(a.acceleration.z, PRINT_FLOAT_DECIMALS);
   Serial.print(",");
-  Serial.print(g.gyro.x);
+  Serial.print(g.gyro.x, PRINT_FLOAT_DECIMALS);
   Serial.print(",");
-  Serial.print(g.gyro.y);
+  Serial.print(g.gyro.y, PRINT_FLOAT_DECIMALS);
   Serial.print(",");
-  Serial.print(g.gyro.z);
+  Serial.print(g.gyro.z, PRINT_FLOAT_DECIMALS);
   Serial.println("");
-
-  delay(10);
 }
