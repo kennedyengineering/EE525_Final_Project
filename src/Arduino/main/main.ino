@@ -23,7 +23,9 @@ void setup(void) {
   mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
   mpu.setGyroRange(MPU6050_RANGE_250_DEG);
   mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
-  Serial.println("");
+
+  Serial.println("AccelX,AccelY,AccelZ,GyroX,GyroY,GyroZ");
+
   delay(100);
 }
 
@@ -34,22 +36,16 @@ void loop() {
   mpu.getEvent(&a, &g, &temp);
 
   /* Print out the values */
-  Serial.print("AccelX:");
   Serial.print(a.acceleration.x);
   Serial.print(",");
-  Serial.print("AccelY:");
   Serial.print(a.acceleration.y);
   Serial.print(",");
-  Serial.print("AccelZ:");
   Serial.print(a.acceleration.z);
   Serial.print(",");
-  Serial.print("GyroX:");
   Serial.print(g.gyro.x);
   Serial.print(",");
-  Serial.print("GyroY:");
   Serial.print(g.gyro.y);
   Serial.print(",");
-  Serial.print("GyroZ:");
   Serial.print(g.gyro.z);
   Serial.println("");
 
