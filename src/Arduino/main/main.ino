@@ -35,6 +35,11 @@ void loop() {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
 
+  /* Print out timestamp */
+  Serial.print("Time:");
+  Serial.print(a.timestamp);
+  Serial.print(",");
+
   /* Print out the values */
   Serial.print(a.acceleration.x);
   Serial.print(",");
