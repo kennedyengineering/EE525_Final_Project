@@ -60,18 +60,19 @@ void output_data() {
 }
 
 void loop() {
-  /* Get starting time */
-  unsigned long start_time = micros();
+  /* Define previous time */
+  static unsigned long previous_time = 0;
 
-  /* Output data */
-  output_data();
+  /* Define current time */
+  unsigned long current_time = micros();
 
-  /* Get ending time */
-  unsigned long end_time = micros();
+  /* Check if enough time has passed */
+  if ((current_time - previous_time) > LOOP_PERIOD_MICROS) {
 
-  /* Enforce constant output rate */
-  unsigned long duration = end_time - start_time;
-  if (duration < LOOP_PERIOD_MICROS) {
-    delayMicroseconds(LOOP_PERIOD_MICROS - duration);
+    /* Update previous time */
+    previous_time = current_time;
+
+    /* Output data */
+    output_data();
   }
 }
