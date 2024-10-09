@@ -1,7 +1,18 @@
 #!/bin/bash
 
 # Set the default serial port, baud rate, and capture duration (in seconds)
-DEFAULT_SERIAL_PORT="/dev/cu.usbmodem2101"
+
+# Check if system is Linux or OSX for default serial port
+OS=$(uname)
+if [[ "$OS" == "Linux" ]]; then
+    DEFAULT_SERIAL_PORT="/dev/ttyACM0"
+elif [[ "$OS" == "Darwin" ]]; then
+    DEFAULT_SERIAL_PORT="/dev/cu.usbmodem2101"
+else
+    echo "Unsupported OS. Please run the script on a Linux or OSX system."
+    exit 1
+fi
+
 DEFAULT_BAUD_RATE="115200"
 CAPTURE_DURATION=60  # Capture duration in seconds (default is 1 minute)
 LOG_FILE="screenlog.0"
