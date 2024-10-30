@@ -8,7 +8,7 @@ EE 525, Fall 2024, Clay McKell
 
 ## Connection Diagram
 
-![connection_diagram](.github/connection_diagram.jpg)  
+![connection_diagram](.github/connection_diagram.jpg)
 Diagram from [42bots.com](https://42bots.com/tutorials/arduino-uno-and-the-invensense-mpu-6050-6dof-imu/)
 
 ## Installation
@@ -27,17 +27,6 @@ Diagram from [42bots.com](https://42bots.com/tutorials/arduino-uno-and-the-inven
     - Serial line : [Arduino COM port]
     - Session logging : Printable output
     - Log file name : [A valid file name]
-
-### Logger Script (Linux/OSX)
-1. Activate environment:  
- `source .venv/bin/activate`
-2. Run the script and capture output:  
- `python3 src/Python/logger.py | tee FILENAME.csv`
-
-#### WSL2 Note (Windows)
-To run the logger script from a WSL2 instance you need to follow a few extra steps:  
-1. Install [usbipd](https://github.com/dorssel/usbipd-win)
-2. Forward Arduino serial port to WSL2 instance by running `usbipd list` then `usbipd attach --wsl --busid=BUSID` for the correct BUSID
 
 ## Misc Notes
  - Skip pre-commit hooks using the `-n` flag when running `git commit`
