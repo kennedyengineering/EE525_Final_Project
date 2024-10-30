@@ -8,7 +8,7 @@ EE 525, Fall 2024, Clay McKell
 
 ## Connection Diagram
 
-![connection_diagram](.github/connection_diagram.jpg)
+![connection_diagram](.github/connection_diagram.jpg)  
 Diagram from [42bots.com](https://42bots.com/tutorials/arduino-uno-and-the-invensense-mpu-6050-6dof-imu/)
 
 ## Installation
