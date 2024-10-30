@@ -9,9 +9,8 @@ echo -e "${GREEN}Creating virtual environment${NC}"
 python3 -m venv .venv
 source .venv/bin/activate
 
-echo -e "${GREEN}Installing packages${NC}"
+echo -e "${GREEN}Installing pre-commit${NC}"
 pip install --no-cache-dir --upgrade pip
-pip install --no-cache-dir -r requirements.txt
 pip install pre-commit
 
 echo -e "${GREEN}Installing pre-commit hooks${NC}"
