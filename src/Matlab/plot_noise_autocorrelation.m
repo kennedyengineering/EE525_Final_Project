@@ -46,15 +46,37 @@ for table={accelTable, gyroTable}
 
         R_estimated = xcov(X, max_lag) / var(X);
 
-        % Plot
+        % Plot autocorrelation
         X_name = entry.Properties.VariableNames(1);
 
-        subplot(width(table{1}), 1, subplotcount);
+        subplot(width(table{1}), 2, subplotcount);
         subplotcount = subplotcount + 1;
         plot(lags * dt, R_estimated, 'LineWidth', 1.5);
         xlabel('\tau');
         ylabel(sprintf('R_{%s}(\\tau)', string(X_name)));
-        title(X_name);
+        title(strcat(X_name, ' Autocorrelation'));
+        grid on;
+
+        % Calculate the power spectral density
+        % https://www.mathworks.com/help/signal/ug/power-spectral-density-estimates-using-fft.html
+        R_estimated = R_estimated(2:end);
+        N = length(R_estimated);
+        fs = 1/dt;
+
+        xdft = fft(R_estimated);
+        xdft = xdft(1:N/2+1);
+        psdx = (1/(fs*N)) * abs(xdft).^2;
+        psdx(2:end-1) = 2*psdx(2:end-1);
+        freq = 0:fs/N:fs/2;
+
+        % Plot power spectral density
+        subplot(width(table{1}), 2, subplotcount);
+        subplotcount = subplotcount + 1;
+        plot(freq, pow2db(psdx), 'LineWidth', 1.5);
+        xlabel('Frequency (Hz)');
+        ylabel('Power/Frequency (dB/Hz)');
+        xlim([0, freq(end)]);
+        title(strcat(X_name,' Power Spectral Density'));
         grid on;
 
     end
