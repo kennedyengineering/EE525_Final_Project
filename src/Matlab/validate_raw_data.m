@@ -1,3 +1,7 @@
+% Validate raw data
+
+clear; clc;
+
 % Validate data
 function validate_data(folder, filename)
 
@@ -21,7 +25,7 @@ function validate_data(folder, filename)
     data = readtable(fullfile(folder, filename));
 
     % Find the maximum value in each column
-    maxValues = varfun(@max, data);
+    maxValues = varfun(@(x) max(abs(x)), data);
 
     % Display the maximum values
     disp('Maximum Values:');
@@ -53,7 +57,8 @@ function validate_data(folder, filename)
     end
 end
 
-% Get files in data directory data_dir = '../../data/';
+% Get files in data directory
+data_dir = '../../data/';
 listing = dir(data_dir);
 
 for i = 1 : length(listing)
