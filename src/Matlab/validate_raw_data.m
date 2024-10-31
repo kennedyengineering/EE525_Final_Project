@@ -13,6 +13,11 @@ function validate_data(folder, filename)
     pattern = '_(\d+)g_(\d+)dps';
     tokens = regexp(filename, pattern, 'tokens');
 
+    % Check if tokens were found
+    if isempty(tokens)
+        error('Filename format is incorrect. Expected format: "something_#g_#dps.csv"');
+    end
+
     % Convert the tokens to numbers
     g_value = str2double(tokens{1} {1});
     dps_value = str2double(tokens{1} {2});
