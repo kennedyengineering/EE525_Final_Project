@@ -31,6 +31,7 @@ gyroIdx = find(contains(yNames, 'Gyro'));
 
 % Plot the accelerometer data (separate)
 figure;
+sgtitle('Accelerometer Readings');
 hold on;
 subplotcount = 1;
 for i = accelIdx
@@ -57,6 +58,7 @@ legend;
 
 % Plot the gyroscope data (separate)
 figure;
+sgtitle('Gyroscope Readings');
 hold on;
 subplotcount = 1;
 for i = gyroIdx
