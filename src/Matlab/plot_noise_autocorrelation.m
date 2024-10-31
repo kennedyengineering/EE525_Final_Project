@@ -27,8 +27,9 @@ gyroTable = data(:, gyroIdx);
 accelNoiseTable = accelTable - mean(accelTable);
 gyroNoiseTable = gyroTable - mean(gyroTable);
 
-% Sample period
+% Sampling information
 dt = 0.008; % seconds per sample
+fs = 1/dt;
 
 % Number of lags
 max_tau = 60;  % Maximum delay in seconds
@@ -81,7 +82,33 @@ for table={accelNoiseTable}
         title(strcat(X_name,' Autocorrelation'));
         xlabel('\tau (s)');
         xlim([taus(1), taus(end)]);
-        ylabel('Linear Acceleration (m/s^2)');
+        ylabel('Linear Acceleration Squared (m/s^2)^2');
+        grid on;
+    end
+
+    % Plot power spectral density
+    figure;
+    sgtitle('Accelerometer Noise Power Spectral Density (Periodogram Estimate)');
+    hold on;
+    subplotcount = 1;
+
+    for entry=table{1}
+
+        % Compute power spectral density
+        values = entry{:, :};
+        [pxx, f] = periodogram(values, rectwin(length(values)), length(values), fs, 'psd');
+
+        % Plot on subplot
+        subplot(width(table{1}), 1, subplotcount);
+        subplotcount = subplotcount + 1;
+
+        X_name = entry.Properties.VariableNames(1);
+
+        plot(f, 10*log10(pxx), 'LineWidth', 1);
+        title(strcat(X_name,' Power Spectral Density'));
+        xlabel('Frequency (Hz)');
+        xlim([f(1), f(end)]);
+        ylabel('Power/frequency (db/Hz)');
         grid on;
     end
 end
