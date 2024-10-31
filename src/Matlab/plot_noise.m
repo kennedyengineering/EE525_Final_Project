@@ -35,7 +35,7 @@ fs = 1/dt;
 max_tau = 60;  % Maximum delay in seconds
 max_lag = floor(max_tau / dt);  % Maximum lag in number of samples
 
-% Analyze accel noise
+% Analyze accelerometer noise
 for table={accelNoiseTable}
 
     % Plot noise
@@ -127,5 +127,98 @@ for table={accelNoiseTable}
         fprintf('%s noise mean: %f\n', X_name, X_mean);
         fprintf('%s noise variance: %f\n', X_name, X_var);
     end
+end
 
+% Analyze gyroscope noise
+for table={gyroNoiseTable}
+
+    % Plot noise
+    figure;
+    sgtitle('Gyroscope Noise');
+    hold on;
+    subplotcount = 1;
+
+    for entry=table{1}
+
+        % Plot on subplot
+        subplot(width(table{1}), 1, subplotcount);
+        subplotcount = subplotcount + 1;
+
+        X_name = entry.Properties.VariableNames(1);
+
+        plot(time, entry{:, :}, 'LineWidth', 1);
+        title(strcat(X_name,' Noise'));
+        xlabel('Time (ms)');
+        xlim([time(1), time(end)]);
+        ylabel('Angular Velocity (rad/s)');
+        grid on;
+    end
+
+    % Plot autocorrelation
+    figure;
+    sgtitle('Gyroscope Noise Autocorrelation (Unbiased Estimate)');
+    hold on;
+    subplotcount = 1;
+
+    for entry=table{1}
+
+        % Compute autocorrelation
+        [r, lags] = xcorr(entry{:, :}, 'unbiased');
+        taus = lags * dt;   % Convert from samples to seconds
+
+        % Plot on subplot
+        subplot(width(table{1}), 1, subplotcount);
+        subplotcount = subplotcount + 1;
+
+        X_name = entry.Properties.VariableNames(1);
+
+        plot(taus, r, 'LineWidth', 1);
+        title(strcat(X_name,' Autocorrelation'));
+        xlabel('\tau (s)');
+        xlim([taus(1), taus(end)]);
+        ylabel('Angular Velocity Squared (rad/s)^2');
+        grid on;
+    end
+
+    % Plot power spectral density
+    figure;
+    sgtitle('Gyroscope Noise Power Spectral Density (Periodogram Estimate)');
+    hold on;
+    subplotcount = 1;
+
+    for entry=table{1}
+
+        % Compute power spectral density
+        values = entry{:, :};
+        [pxx, f] = periodogram(values, rectwin(length(values)), length(values), fs, 'psd');
+
+        % Plot on subplot
+        subplot(width(table{1}), 1, subplotcount);
+        subplotcount = subplotcount + 1;
+
+        X_name = entry.Properties.VariableNames(1);
+
+        plot(f, pow2db(pxx), 'LineWidth', 1);
+        title(strcat(X_name,' Power Spectral Density'));
+        xlabel('Frequency (Hz)');
+        xlim([f(1), f(end)]);
+        ylabel('Power/frequency (db/Hz)');
+        grid on;
+    end
+
+    % Display noise mean and variance
+    for entry=table{1}
+
+        % Compute mean and variance
+        values = entry{:, :};
+        X_mean = mean(values);
+        X_var = var(values);
+
+        % Display
+        X_name = string(entry.Properties.VariableNames(1));
+
+        fprintf('\n');
+        fprintf('%s noise mean: %f\n', X_name, X_mean);
+        fprintf('%s noise variance: %f\n', X_name, X_var);
+    end
 end
