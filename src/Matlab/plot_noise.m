@@ -1,4 +1,4 @@
-% Characterize noise
+% Plot noise
 
 clear; clc;
 
