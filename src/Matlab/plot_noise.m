@@ -31,10 +31,6 @@ gyroNoiseTable = gyroTable - mean(gyroTable);
 dt = 0.008; % seconds per sample
 fs = 1/dt;
 
-% Number of lags
-max_tau = 60;  % Maximum delay in seconds
-max_lag = floor(max_tau / dt);  % Maximum lag in number of samples
-
 % Analyze accelerometer noise
 for table={accelNoiseTable}
 
@@ -118,6 +114,7 @@ for table={accelNoiseTable}
         % Compute mean and variance
         values = entry{:, :};
         X_mean = mean(values);
+        X_squared_mean = mean(values.^2);
         X_var = var(values);
 
         % Display
@@ -125,6 +122,7 @@ for table={accelNoiseTable}
 
         fprintf('\n');
         fprintf('%s noise mean: %f\n', X_name, X_mean);
+        fprintf('%s noise squared mean: %f\n', X_name, X_squared_mean);
         fprintf('%s noise variance: %f\n', X_name, X_var);
     end
 end
@@ -212,6 +210,7 @@ for table={gyroNoiseTable}
         % Compute mean and variance
         values = entry{:, :};
         X_mean = mean(values);
+        X_squared_mean = mean(values.^2);
         X_var = var(values);
 
         % Display
@@ -219,6 +218,7 @@ for table={gyroNoiseTable}
 
         fprintf('\n');
         fprintf('%s noise mean: %f\n', X_name, X_mean);
+        fprintf('%s noise squared mean: %f\n', X_name, X_squared_mean);
         fprintf('%s noise variance: %f\n', X_name, X_var);
     end
 end
