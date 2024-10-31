@@ -3,7 +3,7 @@
 clear; clc;
 
 % Define the path to the data file
-dataFilePath = "../../data/swing_log_raw_4g_500dps_v1.csv";
+dataFilePath = "../../data/swing_log_raw_4g_500dps_v2.csv";
 
 % Check if the file exists
 if ~isfile(dataFilePath)
