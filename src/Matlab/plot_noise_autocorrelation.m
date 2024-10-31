@@ -52,7 +52,7 @@ for table={accelNoiseTable}
 
         X_name = entry.Properties.VariableNames(1);
 
-        plot(time, entry{:, :}, 'LineWidth', 1.5);
+        plot(time, entry{:, :}, 'LineWidth', 1);
         title(strcat(X_name,' Noise'));
         xlabel('Time (ms)');
         xlim([time(1), time(end)]);
@@ -78,7 +78,7 @@ for table={accelNoiseTable}
 
         X_name = entry.Properties.VariableNames(1);
 
-        plot(taus, r, 'LineWidth', 1.5);
+        plot(taus, r, 'LineWidth', 1);
         title(strcat(X_name,' Autocorrelation'));
         xlabel('\tau (s)');
         xlim([taus(1), taus(end)]);
@@ -104,11 +104,28 @@ for table={accelNoiseTable}
 
         X_name = entry.Properties.VariableNames(1);
 
-        plot(f, 10*log10(pxx), 'LineWidth', 1);
+        plot(f, pow2db(pxx), 'LineWidth', 1);
         title(strcat(X_name,' Power Spectral Density'));
         xlabel('Frequency (Hz)');
         xlim([f(1), f(end)]);
         ylabel('Power/frequency (db/Hz)');
         grid on;
     end
+
+    % Display noise mean and variance
+    for entry=table{1}
+
+        % Compute mean and variance
+        values = entry{:, :};
+        X_mean = mean(values);
+        X_var = var(values);
+
+        % Display
+        X_name = string(entry.Properties.VariableNames(1));
+
+        fprintf('\n');
+        fprintf('%s noise mean: %f\n', X_name, X_mean);
+        fprintf('%s noise variance: %f\n', X_name, X_var);
+    end
+
 end
