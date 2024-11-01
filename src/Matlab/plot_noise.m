@@ -1,6 +1,6 @@
 % Plot noise
 
-clear; clc;
+clear; clc; close all;
 
 % Define the path to the data file
 dataFilePath = "../../data/static_log_raw_4g_500dps.csv";
@@ -31,11 +31,14 @@ gyroNoiseTable = gyroTable - mean(gyroTable);
 dt = 0.008; % seconds per sample
 fs = 1/dt;
 
+% Figure Size in order to plots scales
+figure_size = [100, 100, 1000, 800];
+
 % Analyze accelerometer noise
 for table={accelNoiseTable}
 
     % Plot noise
-    figure;
+    figure(Position=figure_size);
     sgtitle('Accelerometer Noise');
     hold on;
     subplotcount = 1;
@@ -57,7 +60,7 @@ for table={accelNoiseTable}
     end
 
     % Plot autocorrelation
-    figure;
+    figure(Position=figure_size);
     sgtitle('Accelerometer Noise Autocorrelation (Unbiased Estimate)');
     hold on;
     subplotcount = 1;
@@ -83,7 +86,7 @@ for table={accelNoiseTable}
     end
 
     % Plot power spectral density
-    figure;
+    figure(Position=figure_size);
     sgtitle('Accelerometer Noise Power Spectral Density (Periodogram Estimate)');
     hold on;
     subplotcount = 1;
@@ -108,22 +111,65 @@ for table={accelNoiseTable}
         grid on;
     end
 
-    % Display noise mean and variance
-    for entry=table{1}
+    % Plot Accelerometer Noise
+    figure(Position=figure_size);
+    sgtitle('Accelerometer Noise Rolling Mean and Variance');
+    hold on;
+    subplotcount = 1;
 
-        % Compute mean and variance
+    mean_interval = mean(diff(time)) / 1000; % in ms
+    windowSize = round(0.5 / mean_interval);
+
+    for entry = table{1}
+        % Extract values and compute statistics
         values = entry{:, :};
         X_mean = mean(values);
         X_squared_mean = mean(values.^2);
+        X_std = std(values);
         X_var = var(values);
 
-        % Display
+        tolerance = 0.02 * max(abs(values)); % 2% of the maximum absolute value
+        upper_tolerance = X_mean + tolerance;
+        lower_tolerance = X_mean - tolerance;
+
+        % Display tolerance information
+        fprintf('Upper tolerance band: %.4e\n', upper_tolerance);
+        fprintf('Lower tolerance band: %.4e\n', lower_tolerance);
+
+        % Display calculated statistics
         X_name = string(entry.Properties.VariableNames(1));
 
         fprintf('\n');
         fprintf('%s noise mean: %f\n', X_name, X_mean);
         fprintf('%s noise squared mean: %f\n', X_name, X_squared_mean);
         fprintf('%s noise variance: %f\n', X_name, X_var);
+
+        % Compute rolling mean and variance
+        rolling_mean = movmean(values, windowSize);
+        rolling_var = movvar(values, windowSize);
+
+        % Plot Rolling Mean with Tolerance Bands
+        subplot(width(table{1}), 2, subplotcount);
+        subplotcount = subplotcount + 1;
+        plot(time, rolling_mean, 'LineWidth', 1.5);
+        hold on;
+        yline(X_mean, 'Color', 'r', 'LineWidth', 1.5);
+        yline(upper_tolerance, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 1);
+        yline(lower_tolerance, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 1);
+        hold off;
+        title(strcat(X_name, ' Rolling Mean'));
+        xlabel('Time (ms)');
+        ylabel('Mean');
+
+        % Plot Rolling Variance
+        subplot(width(table{1}), 2, subplotcount);
+        subplotcount = subplotcount + 1;
+        plot(time, rolling_var, 'LineWidth', 1.5);
+        hold on;
+        hold off;
+        title(strcat(X_name, ' Rolling Variance'));
+        xlabel('Time (ms)');
+        ylabel('Variance');
     end
 end
 
@@ -131,7 +177,7 @@ end
 for table={gyroNoiseTable}
 
     % Plot noise
-    figure;
+    figure(Position=figure_size);
     sgtitle('Gyroscope Noise');
     hold on;
     subplotcount = 1;
@@ -153,7 +199,7 @@ for table={gyroNoiseTable}
     end
 
     % Plot autocorrelation
-    figure;
+    figure(Position=figure_size);
     sgtitle('Gyroscope Noise Autocorrelation (Unbiased Estimate)');
     hold on;
     subplotcount = 1;
@@ -179,7 +225,7 @@ for table={gyroNoiseTable}
     end
 
     % Plot power spectral density
-    figure;
+    figure(Position=figure_size);
     sgtitle('Gyroscope Noise Power Spectral Density (Periodogram Estimate)');
     hold on;
     subplotcount = 1;
@@ -204,21 +250,67 @@ for table={gyroNoiseTable}
         grid on;
     end
 
-    % Display noise mean and variance
-    for entry=table{1}
+    % Plots to Describe Stationary and Ergodic
+    figure(Position=figure_size);
+    sgtitle('Gryoscope Noise Rolling Mean and Variance');
+    hold on;
+    subplotcount = 1;
 
-        % Compute mean and variance
+    mean_interval = mean(diff(time)) / 1000; % in ms
+    windowSize = round(0.5 / mean_interval);
+
+    % Loop through each entry in the table (assuming gyroscope data)
+    for entry = table{1}
+        % Extract values and compute statistics
         values = entry{:, :};
         X_mean = mean(values);
         X_squared_mean = mean(values.^2);
+        X_std = std(values);
         X_var = var(values);
 
-        % Display
+
+        % Plotting for Stationary
+        tolerance = 0.02 * max(abs(values));
+        upper_tolerance = X_mean + tolerance;
+        lower_tolerance = X_mean - tolerance;
+
+        % Display tolerance information
+        fprintf('Upper tolerance band: %.4e\n', upper_tolerance);
+        fprintf('Lower tolerance band: %.4e\n', lower_tolerance);
+
+        % Display calculated statistics
         X_name = string(entry.Properties.VariableNames(1));
 
         fprintf('\n');
         fprintf('%s noise mean: %f\n', X_name, X_mean);
         fprintf('%s noise squared mean: %f\n', X_name, X_squared_mean);
         fprintf('%s noise variance: %f\n', X_name, X_var);
+
+        % Compute rolling mean and variance
+        rolling_mean = movmean(values, windowSize);
+        rolling_var = movvar(values, windowSize);
+
+        % Plot Rolling Mean with Tolerance Bands
+        subplot(width(table{1}), 2, subplotcount);
+        subplotcount = subplotcount + 1;
+        plot(time, rolling_mean, 'LineWidth', 1.5);
+        hold on;
+        yline(X_mean, 'Color', 'r', 'LineWidth', 1.5);
+        yline(upper_tolerance, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 1);
+        yline(lower_tolerance, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 1);
+        hold off;
+        title(strcat(X_name, ' Rolling Mean'));
+        xlabel('Time (ms)');
+        ylabel('Mean');
+
+        % Plot Rolling Variance
+        subplot(width(table{1}), 2, subplotcount);
+        subplotcount = subplotcount + 1;
+        plot(time, rolling_var, 'LineWidth', 1.5);
+        hold on;
+        hold off;
+        title(strcat(X_name, ' Rolling Variance'));
+        xlabel('Time (ms)');
+        ylabel('Variance');
     end
 end
