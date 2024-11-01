@@ -111,15 +111,17 @@ for table={accelNoiseTable}
         grid on;
     end
 
-    % Plot Accelerometer Noise
+    % Plot Accelerometer Noise to Describe Stationary and Ergodic
+    desired_window_size = 0.5; %s
+    window_size = floor(desired_window_size / dt);
+    window_size_seconds = window_size * dt * 1000;
+
     figure(Position=figure_size);
-    sgtitle('Accelerometer Noise Rolling Mean and Variance');
+    sgtitle(sprintf('Accelerometer Noise Rolling Mean and Variance (Window Length: %d ms)', window_size_seconds));
     hold on;
     subplotcount = 1;
 
-    mean_interval = mean(diff(time)) / 1000; % in ms
-    windowSize = round(0.5 / mean_interval);
-
+    % Loop through each entry in the table (assuming gyroscope data)
     for entry = table{1}
         % Extract values and compute statistics
         values = entry{:, :};
@@ -128,13 +130,14 @@ for table={accelNoiseTable}
         X_std = std(values);
         X_var = var(values);
 
-        tolerance = 0.02 * max(abs(values)); % 2% of the maximum absolute value
+        % Rolling Mean Tolerances
+        tolerance = 0.02 * max(abs(values));
         upper_tolerance = X_mean + tolerance;
         lower_tolerance = X_mean - tolerance;
 
         % Display tolerance information
-        fprintf('Upper tolerance band: %.4e\n', upper_tolerance);
-        fprintf('Lower tolerance band: %.4e\n', lower_tolerance);
+        fprintf('Rolling Mean Upper tolerance band: %.4e\n', upper_tolerance);
+        fprintf('Rolling Mean Lower tolerance band: %.4e\n', lower_tolerance);
 
         % Display calculated statistics
         X_name = string(entry.Properties.VariableNames(1));
@@ -145,31 +148,57 @@ for table={accelNoiseTable}
         fprintf('%s noise variance: %f\n', X_name, X_var);
 
         % Compute rolling mean and variance
-        rolling_mean = movmean(values, windowSize);
-        rolling_var = movvar(values, windowSize);
+        rolling_mean = movmean(values, window_size);
+        rolling_var = movvar(values, window_size);
 
-        % Plot Rolling Mean with Tolerance Bands
+        % Plot Rolling Mean with Tolerance Bands for Gyroscope Noise (Enhanced Labeling)
         subplot(width(table{1}), 2, subplotcount);
         subplotcount = subplotcount + 1;
         plot(time, rolling_mean, 'LineWidth', 1.5);
         hold on;
         yline(X_mean, 'Color', 'r', 'LineWidth', 1.5);
-        yline(upper_tolerance, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 1);
-        yline(lower_tolerance, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 1);
+        yline(upper_tolerance, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2);
+        yline(lower_tolerance, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2);
         hold off;
-        title(strcat(X_name, ' Rolling Mean'));
+        title(sprintf('%s Rolling Mean', X_name));
         xlabel('Time (ms)');
-        ylabel('Mean');
+        ylabel('Mean (m/s^2)');
+        xlim([time(1), time(end) + 5]);
 
-        % Plot Rolling Variance
+        % Annotate directly on the plot with adjusted positions and bold text
+        text(time(end) * 1.02, X_mean, 'Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end) * 1.02, upper_tolerance * 1.02, '+2%', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end) * 1.02, lower_tolerance * 0.98, '-2%', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+
+        % Rolling Variance Tolerances
+        var_mean = mean(X_var);
+        tolerance = 0.6 * var_mean; % 60%
+        upper_tolerance = var_mean + tolerance;
+        lower_tolerance = var_mean - tolerance;
+
+        % Display tolerance information
+        fprintf('Rolling Variance Upper tolerance band: %.4e\n', upper_tolerance);
+        fprintf('Rolling Variance Lower tolerance band: %.4e\n', lower_tolerance);
+
+        % Plot Rolling Variance for Accel Noise
         subplot(width(table{1}), 2, subplotcount);
         subplotcount = subplotcount + 1;
         plot(time, rolling_var, 'LineWidth', 1.5);
+        title(sprintf('%s Rolling Variance', X_name));
         hold on;
+        yline(var_mean, 'Color', 'r', 'LineWidth', 1.5);
+        yline(upper_tolerance, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2);
+        yline(lower_tolerance, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2);
         hold off;
-        title(strcat(X_name, ' Rolling Variance'));
         xlabel('Time (ms)');
-        ylabel('Variance');
+        ylabel('Variance (m/s^2)^2');
+        xlim([time(1), time(end) + 5]);
+
+         % Annotate directly on the plot with adjusted positions and bold
+         % text (NOT related with actual tolerance percentages)
+        text(time(end) * 1.04, var_mean * 1.2, 'Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end) * 1.04, upper_tolerance * 1.3, '+60%', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end) * 1.04, lower_tolerance * 0.6, '-60%', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
     end
 end
 
@@ -251,13 +280,14 @@ for table={gyroNoiseTable}
     end
 
     % Plots to Describe Stationary and Ergodic
+    desired_window_size = 0.5; %s
+    window_size = floor(desired_window_size / dt);
+    window_size_seconds = window_size * dt * 1000;
+
     figure(Position=figure_size);
-    sgtitle('Gryoscope Noise Rolling Mean and Variance');
+    sgtitle(sprintf('Gryoscope Noise Rolling Mean and Variance (Window Length: %d ms)', window_size_seconds));
     hold on;
     subplotcount = 1;
-
-    mean_interval = mean(diff(time)) / 1000; % in ms
-    windowSize = round(0.5 / mean_interval);
 
     % Loop through each entry in the table (assuming gyroscope data)
     for entry = table{1}
@@ -267,7 +297,6 @@ for table={gyroNoiseTable}
         X_squared_mean = mean(values.^2);
         X_std = std(values);
         X_var = var(values);
-
 
         % Plotting for Stationary
         tolerance = 0.02 * max(abs(values));
@@ -287,30 +316,56 @@ for table={gyroNoiseTable}
         fprintf('%s noise variance: %f\n', X_name, X_var);
 
         % Compute rolling mean and variance
-        rolling_mean = movmean(values, windowSize);
-        rolling_var = movvar(values, windowSize);
+        rolling_mean = movmean(values, window_size);
+        rolling_var = movvar(values, window_size);
 
-        % Plot Rolling Mean with Tolerance Bands
+        % Plot Rolling Mean with Tolerance Bands for Gyroscope Noise (Enhanced Labeling)
         subplot(width(table{1}), 2, subplotcount);
         subplotcount = subplotcount + 1;
         plot(time, rolling_mean, 'LineWidth', 1.5);
         hold on;
         yline(X_mean, 'Color', 'r', 'LineWidth', 1.5);
-        yline(upper_tolerance, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 1);
-        yline(lower_tolerance, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 1);
+        yline(upper_tolerance, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2);
+        yline(lower_tolerance, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2);
         hold off;
-        title(strcat(X_name, ' Rolling Mean'));
+        title(sprintf('%s Rolling Mean', X_name));
         xlabel('Time (ms)');
-        ylabel('Mean');
+        ylabel('Mean (rad/s)');
+        xlim([time(1), time(end) + 5]);
 
-        % Plot Rolling Variance
+        % Annotate directly on the plot with adjusted positions and bold text
+        text(time(end) * 1.02, X_mean, 'Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end) * 1.02, upper_tolerance * 1.02, '+2%', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end) * 1.02, lower_tolerance * 0.98, '-2%', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+
+        % Rolling Variance Tolerances
+        var_mean = mean(X_var);
+        tolerance = 0.6 * var_mean; % 60%
+        upper_tolerance = var_mean + tolerance;
+        lower_tolerance = var_mean - tolerance;
+
+        % Display tolerance information
+        fprintf('Rolling Variance Upper tolerance band: %.4e\n', upper_tolerance);
+        fprintf('Rolling Variance Lower tolerance band: %.4e\n', lower_tolerance);
+
+        % Plot Rolling Variance for Accel Noise
         subplot(width(table{1}), 2, subplotcount);
         subplotcount = subplotcount + 1;
         plot(time, rolling_var, 'LineWidth', 1.5);
+        title(sprintf('%s Rolling Variance', X_name));
         hold on;
+        yline(var_mean, 'Color', 'r', 'LineWidth', 1.5);
+        yline(upper_tolerance, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2);
+        yline(lower_tolerance, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2);
         hold off;
-        title(strcat(X_name, ' Rolling Variance'));
         xlabel('Time (ms)');
-        ylabel('Variance');
+        ylabel('Variance (rad/s)^2');
+        xlim([time(1), time(end) + 5]);
+
+         % Annotate directly on the plot with adjusted positions and bold
+         % text (NOT related with actual tolerance percentages)
+        text(time(end) * 1.04, var_mean * 1.2, 'Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end) * 1.04, upper_tolerance * 1.5, '+60%', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end) * 1.04, lower_tolerance * 0.2, '-60%', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
     end
 end
