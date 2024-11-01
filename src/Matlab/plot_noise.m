@@ -1,6 +1,6 @@
 % Plot noise
 
-clear; clc;
+clear; clc; close all;
 
 % Define the path to the data file
 dataFilePath = "../../data/static_log_raw_4g_500dps.csv";
@@ -31,11 +31,14 @@ gyroNoiseTable = gyroTable - mean(gyroTable);
 dt = 0.008; % seconds per sample
 fs = 1/dt;
 
+% Default figure size
+figure_size = [100, 100, 1000, 800];
+
 % Analyze accelerometer noise
 for table={accelNoiseTable}
 
     % Plot noise
-    figure;
+    figure(Position=figure_size);
     sgtitle('Accelerometer Noise');
     hold on;
     subplotcount = 1;
@@ -57,7 +60,7 @@ for table={accelNoiseTable}
     end
 
     % Plot autocorrelation
-    figure;
+    figure(Position=figure_size);
     sgtitle('Accelerometer Noise Autocorrelation (Unbiased Estimate)');
     hold on;
     subplotcount = 1;
@@ -83,7 +86,7 @@ for table={accelNoiseTable}
     end
 
     % Plot power spectral density
-    figure;
+    figure(Position=figure_size);
     sgtitle('Accelerometer Noise Power Spectral Density (Periodogram Estimate)');
     hold on;
     subplotcount = 1;
@@ -108,22 +111,71 @@ for table={accelNoiseTable}
         grid on;
     end
 
-    % Display noise mean and variance
-    for entry=table{1}
+    % Plot rolling mean and variance
+    window_length = floor(0.5 / dt);   % 0.5 second window length, in unit samples
 
-        % Compute mean and variance
+    figure(Position=figure_size);
+    sgtitle(sprintf('Accelerometer Noise Rolling Mean and Variance (Window Length: %d ms)', window_length * dt * 1000));
+    hold on;
+    subplotcount = 1;
+
+    for entry = table{1}
+        % Extract values
         values = entry{:, :};
-        X_mean = mean(values);
-        X_squared_mean = mean(values.^2);
-        X_var = var(values);
-
-        % Display
         X_name = string(entry.Properties.VariableNames(1));
 
-        fprintf('\n');
-        fprintf('%s noise mean: %f\n', X_name, X_mean);
-        fprintf('%s noise squared mean: %f\n', X_name, X_squared_mean);
-        fprintf('%s noise variance: %f\n', X_name, X_var);
+        % Compute rolling mean and variance
+        rolling_mean = movmean(values, window_length);
+        rolling_var = movvar(values, window_length);
+
+        % Compute rolling mean and variance standard deviation
+        rolling_mean_mean = mean(rolling_mean);
+        rolling_mean_std = std(rolling_mean);
+
+        rolling_var_mean = mean(rolling_var);
+        rolling_var_std = std(rolling_var);
+
+        % Display rolling mean and variance standard deviation
+        fprintf('%s rolling mean standard deviation: %f\n', X_name, rolling_mean_std);
+        fprintf('%s rolling variance standard deviation: %f\n', X_name, rolling_var_std);
+
+        % Plot rolling mean
+        subplot(width(table{1}), 2, subplotcount);
+        subplotcount = subplotcount + 1;
+
+        plot(time, rolling_mean, 'LineWidth', 1.5);
+        hold on;
+        yline(rolling_mean_mean, 'Color', 'r', 'LineWidth', 1.5);
+        yline(rolling_mean_mean + rolling_mean_std, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2);
+        yline(rolling_mean_mean - rolling_mean_std, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2);
+        hold off;
+        title(sprintf('%s Noise Rolling Mean', X_name));
+        xlabel('Time (ms)');
+        ylabel('Mean Linear Acceleration (m/s^2)');
+        xlim([time(1), time(end)]);
+
+        text(time(end), rolling_mean_mean, 'Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_mean_mean + rolling_mean_std, '+\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_mean_mean - rolling_mean_std, '-\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+
+        % Plot rolling variance
+        subplot(width(table{1}), 2, subplotcount);
+        subplotcount = subplotcount + 1;
+
+        plot(time, rolling_var, 'LineWidth', 1.5);
+        hold on;
+        yline(rolling_var_mean, 'Color', 'r', 'LineWidth', 1.5, 'DisplayName', 'Mean');
+        yline(rolling_var_mean + rolling_var_std, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2, 'DisplayName', '+\sigma');
+        yline(rolling_var_mean - rolling_var_std, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2, 'DisplayName', '-\sigma');
+        hold off;
+        title(sprintf('%s Rolling Variance', X_name));
+        xlabel('Time (ms)');
+        ylabel('Variance Linear Acceleration (m/s^2)^2');
+        xlim([time(1), time(end)]);
+
+        text(time(end), rolling_var_mean, 'Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_var_mean + rolling_var_std, '+\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_var_mean - rolling_var_std, '-\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
     end
 end
 
@@ -131,7 +183,7 @@ end
 for table={gyroNoiseTable}
 
     % Plot noise
-    figure;
+    figure(Position=figure_size);
     sgtitle('Gyroscope Noise');
     hold on;
     subplotcount = 1;
@@ -153,7 +205,7 @@ for table={gyroNoiseTable}
     end
 
     % Plot autocorrelation
-    figure;
+    figure(Position=figure_size);
     sgtitle('Gyroscope Noise Autocorrelation (Unbiased Estimate)');
     hold on;
     subplotcount = 1;
@@ -179,7 +231,7 @@ for table={gyroNoiseTable}
     end
 
     % Plot power spectral density
-    figure;
+    figure(Position=figure_size);
     sgtitle('Gyroscope Noise Power Spectral Density (Periodogram Estimate)');
     hold on;
     subplotcount = 1;
@@ -204,21 +256,70 @@ for table={gyroNoiseTable}
         grid on;
     end
 
-    % Display noise mean and variance
-    for entry=table{1}
+    % Plot rolling mean and variance
+    window_length = floor(0.5 / dt);   % 0.5 second window length, in unit samples
 
-        % Compute mean and variance
+    figure(Position=figure_size);
+    sgtitle(sprintf('Gyroscope Noise Rolling Mean and Variance (Window Length: %d ms)', window_length * dt * 1000));
+    hold on;
+    subplotcount = 1;
+
+    for entry = table{1}
+        % Extract values
         values = entry{:, :};
-        X_mean = mean(values);
-        X_squared_mean = mean(values.^2);
-        X_var = var(values);
-
-        % Display
         X_name = string(entry.Properties.VariableNames(1));
 
-        fprintf('\n');
-        fprintf('%s noise mean: %f\n', X_name, X_mean);
-        fprintf('%s noise squared mean: %f\n', X_name, X_squared_mean);
-        fprintf('%s noise variance: %f\n', X_name, X_var);
+        % Compute rolling mean and variance
+        rolling_mean = movmean(values, window_length);
+        rolling_var = movvar(values, window_length);
+
+        % Compute rolling mean and variance standard deviation
+        rolling_mean_mean = mean(rolling_mean);
+        rolling_mean_std = std(rolling_mean);
+
+        rolling_var_mean = mean(rolling_var);
+        rolling_var_std = std(rolling_var);
+
+        % Display rolling mean and variance standard deviation
+        fprintf('%s rolling mean standard deviation: %f\n', X_name, rolling_mean_std);
+        fprintf('%s rolling variance standard deviation: %f\n', X_name, rolling_var_std);
+
+        % Plot rolling mean
+        subplot(width(table{1}), 2, subplotcount);
+        subplotcount = subplotcount + 1;
+
+        plot(time, rolling_mean, 'LineWidth', 1.5);
+        hold on;
+        yline(rolling_mean_mean, 'Color', 'r', 'LineWidth', 1.5);
+        yline(rolling_mean_mean + rolling_mean_std, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2);
+        yline(rolling_mean_mean - rolling_mean_std, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2);
+        hold off;
+        title(sprintf('%s Noise Rolling Mean', X_name));
+        xlabel('Time (ms)');
+        ylabel('Mean Angular Velocity (rad/s)');
+        xlim([time(1), time(end)]);
+
+        text(time(end), rolling_mean_mean, 'Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_mean_mean + rolling_mean_std, '+\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_mean_mean - rolling_mean_std, '-\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+
+        % Plot rolling variance
+        subplot(width(table{1}), 2, subplotcount);
+        subplotcount = subplotcount + 1;
+
+        plot(time, rolling_var, 'LineWidth', 1.5);
+        hold on;
+        yline(rolling_var_mean, 'Color', 'r', 'LineWidth', 1.5, 'DisplayName', 'Mean');
+        yline(rolling_var_mean + rolling_var_std, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2, 'DisplayName', '+\sigma');
+        yline(rolling_var_mean - rolling_var_std, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2, 'DisplayName', '-\sigma');
+        hold off;
+        title(sprintf('%s Rolling Variance', X_name));
+        xlabel('Time (ms)');
+        ylabel('Variance Angular Velocity (rad/s)^2');
+        xlim([time(1), time(end)]);
+
+        text(time(end), rolling_var_mean, 'Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_var_mean + rolling_var_std, '+\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_var_mean - rolling_var_std, '-\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
     end
 end
