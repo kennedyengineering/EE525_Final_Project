@@ -21,10 +21,37 @@ while True:
         break
 
     # Our operations on the frame come here
-    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    blurred = cv.GaussianBlur(frame, (7, 7), 0)
+    hsv = cv.cvtColor(blurred, cv.COLOR_BGR2HSV)
+
+    # set the bounds for the red hue
+    lower_red = np.array([150,190,110])
+    upper_red = np.array([180,255,255])
+
+    # create a mask using the bounds set
+    mask = cv.inRange(hsv, lower_red, upper_red)
+    # create an inverse of the mask
+    mask_inv = cv.bitwise_not(mask)
+    # Filter only the red colour from the original image using the mask
+    res = cv.bitwise_and(frame, frame, mask=mask)
+
+    # find contour
+    contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    contour = max(contours, key=cv.contourArea)
+
+    # Get the minimum enclosing circle
+    (x, y), radius = cv.minEnclosingCircle(contour)
+
+    # Draw the circle on the image (convert center to int)
+    center = (int(x), int(y))
+    radius = int(radius)
+
+    # Draw the circle and its center on the image
+    cv.circle(frame, center, radius, (0, 255, 0), 2)  # Green circle
+    cv.circle(frame, center, 5, (0, 0, 255), 3)  # Red center point
 
     # Display the resulting frame
-    cv.imshow('frame', gray)
+    cv.imshow('frame', frame)
     if cv.waitKey(1) == ord('q'):
         break
 
