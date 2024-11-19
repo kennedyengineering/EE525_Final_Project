@@ -15,7 +15,8 @@ function validate_data(folder, filename)
 
     % Check if tokens were found
     if isempty(tokens)
-        error('Filename format is incorrect. Expected format: "something_#g_#dps.csv"');
+        disp('skipping... filename format is incorrect, expected format: "something_#g_#dps.csv"');
+        return
     end
 
     % Convert the tokens to numbers
@@ -63,7 +64,7 @@ function validate_data(folder, filename)
 end
 
 % Get files in data directory
-data_dir = '../../data/';
+data_dir = '../../data/static';
 listing = dir(data_dir);
 
 for i = 1 : length(listing)

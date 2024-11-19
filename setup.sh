@@ -11,6 +11,7 @@ source .venv/bin/activate
 
 echo -e "${GREEN}Installing pre-commit${NC}"
 pip install --no-cache-dir --upgrade pip
+pip install -r requirements.txt
 pip install pre-commit
 
 echo -e "${GREEN}Installing pre-commit hooks${NC}"
