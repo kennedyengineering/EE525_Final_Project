@@ -3,7 +3,7 @@
 import numpy as np
 import cv2 as cv
 
-filename = "data/vision2/ethernet_pendulum_video_1.MOV"
+filename = "data/vision2/ethernet_pendulum_video_2.MOV"
 
 clicked_coordinates = []
 
@@ -41,6 +41,9 @@ if not cap.isOpened():
     print("Cannot open camera")
     exit()
 
+marker_coordinates = []
+marker_radii = []
+
 while True:
     # Capture frame-by-frame
     ret, frame = cap.read()
@@ -54,6 +57,53 @@ while True:
     if not clicked_coordinates and not get_click_coordinates(frame):
         break
 
+    # determine marker points
+    if not marker_coordinates:
+
+        # mask out bottom of frame
+        fh, fw, _ = frame.shape
+
+        mask = np.ones((fh, fw), dtype=np.uint8) * 255
+        x, y, w, h = 0, fh-600, fw, 600
+        mask[y:y+h, x:x+w] = 0
+
+        masked_frame = cv.bitwise_and(frame, frame, mask=mask)
+
+        # blur frame
+        blurred = cv.GaussianBlur(masked_frame, (7, 7), 0)
+
+        # convert color space
+        hsv = cv.cvtColor(blurred, cv.COLOR_BGR2HSV)
+
+        # mask for markers
+        lower_marker = np.array([0, 50, 225])
+        upper_marker = np.array([180, 255, 255])
+
+        mask = cv.inRange(hsv, lower_marker, upper_marker)
+
+        # find marker contours
+        contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        contours = sorted(contours, key=cv.contourArea, reverse=True)[:4]
+
+        # find marker centers
+        for contour in contours:
+            # get the minimum enclosing circle
+            (x, y), radius = cv.minEnclosingCircle(contour)
+
+            # store results
+            center = (int(x), int(y))
+            marker_coordinates.append(center)
+            radius = int(radius)
+            marker_radii.append(radius)
+
+    # draw markers
+    for center, radius in zip(marker_coordinates, marker_radii):
+        cv.circle(frame, center, radius, (0, 0, 255), 1)
+
+    centers = np.array(marker_coordinates, dtype=np.int32)
+    centers.reshape((-1,1,2))
+    cv.polylines(frame, [centers], True, (255,0,0), 2, cv.LINE_8)
+
     # Our operations on the frame come here
     blurred = cv.GaussianBlur(frame, (7, 7), 0)
     hsv = cv.cvtColor(blurred, cv.COLOR_BGR2HSV)
@@ -64,10 +114,6 @@ while True:
 
     # create a mask using the bounds set
     mask = cv.inRange(hsv, lower_green, upper_green)
-    # create an inverse of the mask
-    mask_inv = cv.bitwise_not(mask)
-    # Filter only the green colour from the original image using the mask
-    res = cv.bitwise_and(frame, frame, mask=mask)
 
     # find contour
     contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
