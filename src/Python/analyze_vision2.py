@@ -4,7 +4,7 @@ import numpy as np
 import cv2 as cv
 import csv
 
-filename = "data/vision2/ethernet_pendulum_video_3.MOV"
+filename = "data/vision2/usb_pendulum_video_3.MOV"
 output_filename = "src/Python/analyze_vision2_output.csv"
 
 marker_rect_top_length_inches = 30
