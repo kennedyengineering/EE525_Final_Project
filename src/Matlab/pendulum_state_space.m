@@ -1,4 +1,4 @@
-% Modeling pendulum
+% Modeling pendulum motion from video analysis
 
 clc; clear; close all;
 
