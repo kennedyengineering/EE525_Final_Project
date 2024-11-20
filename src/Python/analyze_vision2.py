@@ -2,8 +2,10 @@
 
 import numpy as np
 import cv2 as cv
+import csv
 
 filename = "data/vision2/ethernet_pendulum_video_3.MOV"
+output_filename = "src/Python/analyze_vision2_output.csv"
 
 marker_rect_top_length_inches = 30
 marker_rect_side_length_inches = 18.75
@@ -49,6 +51,9 @@ if not cap.isOpened():
     exit()
 
 H = None
+
+data = []
+timestamp = 0
 
 while True:
     # Capture frame-by-frame
@@ -152,6 +157,10 @@ while True:
     # Draw the rest of the pendulum
     cv.line(frame, clicked_coordinates[0], center, (0, 255, 0), 2)
 
+    # Store data
+    data.append([timestamp, center[0], center[1], clicked_coordinates[0][0], clicked_coordinates[0][1], pixels_per_inch])
+    timestamp += 1/30
+
     # Display the resulting frame
     cv.imshow('Pendulum Visual Analysis', frame)
     if cv.waitKey(33) == ord('q'):
@@ -160,3 +169,9 @@ while True:
 # When everything done, release the capture
 cap.release()
 cv.destroyAllWindows()
+
+# Write to CSV file
+with open(output_filename, 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(['Timestamp', 'PosX', 'PosY', 'ClkPosX', 'ClkPosY', 'PxPerInch'])
+    writer.writerows(data)
