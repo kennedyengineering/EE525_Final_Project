@@ -5,6 +5,13 @@ import cv2 as cv
 
 filename = "data/vision2/ethernet_pendulum_video_3.MOV"
 
+marker_rect_top_length_inches = 30
+marker_rect_side_length_inches = 18.75
+
+pixels_per_inch = 20
+marker_rect_top_length_pixels = marker_rect_top_length_inches * pixels_per_inch
+marker_rect_side_length_pixels = marker_rect_side_length_inches * pixels_per_inch
+
 clicked_coordinates = []
 
 def click_event(event, x, y, flags, params):
@@ -41,8 +48,7 @@ if not cap.isOpened():
     print("Cannot open camera")
     exit()
 
-marker_coordinates = []
-marker_radii = []
+H = None
 
 while True:
     # Capture frame-by-frame
@@ -53,12 +59,8 @@ while True:
         print("Can't receive frame (stream end?). Exiting ...")
         break
 
-    # determine pendulum swing point
-    if not clicked_coordinates and not get_click_coordinates(frame):
-        break
-
-    # determine marker points
-    if not marker_coordinates:
+    # determine homography from markers
+    if H is None:
 
         # mask out bottom of frame
         fh, fw, _ = frame.shape
@@ -86,6 +88,7 @@ while True:
         contours = sorted(contours, key=cv.contourArea, reverse=True)[:4]
 
         # find marker centers
+        marker_coordinates = []
         for contour in contours:
             # get the minimum enclosing circle
             (x, y), radius = cv.minEnclosingCircle(contour)
@@ -93,8 +96,6 @@ while True:
             # store results
             center = (int(x), int(y))
             marker_coordinates.append(center)
-            radius = int(radius)
-            marker_radii.append(radius)
 
         # sort marker centers
         centroid = np.mean(marker_coordinates, axis=0)
@@ -104,13 +105,24 @@ while True:
 
         marker_coordinates = sorted(marker_coordinates, key=lambda p: angle_from_centroid(p, centroid))
 
-    # draw markers
-    for center, radius in zip(marker_coordinates, marker_radii):
-        cv.circle(frame, center, radius, (0, 0, 255), 1)
+        # compute homography
+        vertices = np.array(marker_coordinates)
 
-    centers = np.array(marker_coordinates, dtype=np.int32)
-    centers.reshape((-1,1,2))
-    cv.polylines(frame, [centers], True, (255,0,0), 2, cv.LINE_8)
+        dest_vertices = np.array([(0,0),
+                                  (marker_rect_top_length_pixels, 0),
+                                  (marker_rect_top_length_pixels, marker_rect_side_length_pixels),
+                                  (0,marker_rect_side_length_pixels),
+                                  ])
+
+        H, _ = cv.findHomography(vertices, dest_vertices)
+
+    # warp and crop image
+    frame = cv.warpPerspective(frame, H, (fw, fh))
+    frame = frame[0:int(marker_rect_side_length_pixels), 0:int(marker_rect_top_length_pixels)]
+
+    # determine pendulum swing point
+    if not clicked_coordinates and not get_click_coordinates(frame):
+        break
 
     # Our operations on the frame come here
     blurred = cv.GaussianBlur(frame, (7, 7), 0)
