@@ -123,3 +123,41 @@ function plot_table_data(table, time, figure_size, titleText, xLabel, yLabel, fi
     drawnow;
     matlab2tikz(filename, 'width', '0.9\linewidth', 'height', '0.9\textheight');
 end
+
+function plot_table_autocorrelation(table, dt, figure_size, titleText, filename)
+    figure(Position = figure_size);
+    sgtitle(titleText);
+    for i = 1:width(table)
+        [r, lags] = xcorr(table{:, i}, 'unbiased');
+        taus = lags * dt;
+        subplot(width(table), 1, i);
+        plot(taus, r, 'LineWidth', 1);
+        title(sprintf('%s Autocorrelation', table.Properties.VariableNames{i}));
+        xlabel('\tau (s)');
+        ylabel('Autocorrelation');
+        xlim([taus(1), taus(end)]);
+        % Temporary fix for y-axis limits
+        %ylim([-3*10^(-6), 3*10^(-6)]);
+        grid on;
+    end
+    drawnow;
+    matlab2tikz(filename, 'width', '1.0\linewidth');
+end
+
+function plot_table_psd(table, fs, figure_size, titleText, yLimits, filename)
+    figure(Position = figure_size);
+    sgtitle(titleText);
+    for i = 1:width(table)
+        [pxx, f] = periodogram(table{:, i}, rectwin(length(table{:, i})), length(table{:, i}), fs, 'psd');
+        subplot(width(table), 1, i);
+        plot(f, pow2db(pxx), 'LineWidth', 1);
+        title(sprintf('%s Power Spectral Density', table.Properties.VariableNames{i}));
+        xlabel('Frequency (Hz)');
+        ylabel('Power/frequency (dB/Hz)');
+        xlim([f(1), f(end)]);
+        ylim(yLimits);
+        grid on;
+    end
+    drawnow;
+    matlab2tikz(filename, 'width', '1.0\linewidth');
+end
