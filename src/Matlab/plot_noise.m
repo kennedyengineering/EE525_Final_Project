@@ -161,3 +161,60 @@ function plot_table_psd(table, fs, figure_size, titleText, yLimits, filename)
     drawnow;
     matlab2tikz(filename, 'width', '1.0\linewidth');
 end
+
+function plot_rolling_stats(table, time, window_length, figure_size, titleText, filename)
+    figure(Position = figure_size);
+    sgtitle(titleText);
+    subplotcount = 1;
+    for i = 1:width(table)
+        values = table{:, i};
+        rolling_mean = movmean(values, window_length);
+        rolling_var = movvar(values, window_length);
+        mean_std = std(rolling_mean);
+        var_std = std(rolling_var);
+
+        subplot(width(table), 2, subplotcount); subplotcount = subplotcount + 1;
+        plot_with_stats(time, rolling_mean, 'Mean', mean_std, 'Mean Linear Acceleration (m/s^2)');
+
+        subplot(width(table), 2, subplotcount); subplotcount = subplotcount + 1;
+        plot_with_stats(time, rolling_var, 'Variance', var_std, 'Variance (m/s^2)^2');
+    end
+    drawnow;
+    matlab2tikz(filename, 'width', '1.0\linewidth');
+end
+
+function plot_with_stats(time, values, statType, statStd, yLabel)
+    % Calculate mean and standard deviation
+    mean_value = mean(values);
+
+    % Create the plot with labels
+    plot(time, values, 'LineWidth', 1.5, 'DisplayName', statType);
+    hold on;
+    yline(mean_value, 'Color', 'r', 'LineWidth', 1.5, 'DisplayName', 'Mean');
+    yline(mean_value + statStd, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2, 'DisplayName', '+\sigma');
+    yline(mean_value - statStd, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2, 'DisplayName', '-\sigma');
+
+    % Adjust x-axis limits for text placement
+    offset = 0.02 * (time(end) - time(1)); % 2% of x-axis range
+
+    % Add text annotations dynamically
+    text(time(end) + offset, mean_value, 'Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+    text(time(end) + offset, mean_value + statStd, '+\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+    text(time(end) + offset, mean_value - statStd, '-\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+
+    hold off;
+
+    ylabel(yLabel);
+    xlabel('Time (ms)');
+    title(sprintf('%s Rolling %s', yLabel, statType));
+    xlim([time(1), time(end)]);
+    grid on;
+end
+
+function yLabel = sensorType_axes_label(sensorType)
+    if strcmpi(sensorType, 'Accelerometer')
+        yLabel = 'Linear Acceleration (m/s^2)';
+    else
+        yLabel = 'Angular Velocity (rad/s)';
+    end
+end
