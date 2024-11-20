@@ -218,3 +218,55 @@ function yLabel = sensorType_axes_label(sensorType)
         yLabel = 'Angular Velocity (rad/s)';
     end
 end
+
+function plot_ensemble_autocorr(noiseData, dt, sensorType, figureSize)
+    numTrials = length(noiseData);
+    all_autocorr = cell(1, numTrials);
+    taus = [];
+
+    % Calculate autocorrelation for each trial
+    for i = 1:numTrials
+        data = noiseData{i}.noiseTable{:,:};  % Convert table to matrix
+        [autocorr, lags] = calculate_trial_autocorr(data);
+        all_autocorr{i} = autocorr;
+        if isempty(taus)
+            taus = lags * dt;
+        end
+    end
+
+    % Find minimum length and truncate if necessary
+    lengths = cellfun(@(x) size(x,2), all_autocorr);
+    min_length = min(lengths);
+    all_autocorr = cellfun(@(x) x(:,1:min_length), all_autocorr, 'UniformOutput', false);
+
+    % Convert cell array to 3D matrix for averaging
+    autocorr_matrix = cat(3, all_autocorr{:});
+    ensemble_autocorr = mean(autocorr_matrix, 3);
+
+    % Plot results
+    figure('Position', figureSize);
+    axisNames = {'X', 'Y', 'Z'};
+
+    for i = 1:3
+        subplot(3,1,i)
+        plot(taus(1:min_length), ensemble_autocorr(i,:), 'LineWidth', 1.5)
+        title(sprintf('%s %s-Axis Ensemble Average Autocorrelation', sensorType, axisNames{i}))
+        xlabel('\tau (s)')
+        ylabel('Autocorrelation')
+        grid on
+    end
+end
+
+function [autocorr_results, lags] = calculate_trial_autocorr(data)
+    num_samples = size(data, 1);
+    lags = -(num_samples-1):(num_samples-1);
+    autocorr_results = zeros(size(data,2), length(lags));
+
+    for i = 1:size(data,2)
+        signal = data(:,i);
+        signal = signal - mean(signal);  % Remove mean
+        % Calculate autocorrelation and normalize
+        autocorr = xcorr(signal, 'unbiased');
+        autocorr_results(i,:) = autocorr;
+    end
+end
