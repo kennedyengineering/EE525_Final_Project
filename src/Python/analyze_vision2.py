@@ -154,7 +154,7 @@ while True:
 
     # Display the resulting frame
     cv.imshow('Pendulum Visual Analysis', frame)
-    if cv.waitKey(1) == ord('q'):
+    if cv.waitKey(33) == ord('q'):
         break
 
 # When everything done, release the capture
