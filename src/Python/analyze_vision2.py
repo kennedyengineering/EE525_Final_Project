@@ -3,7 +3,7 @@
 import numpy as np
 import cv2 as cv
 
-filename = "data/vision/swing_pendulum_vision_video_1.MOV"
+filename = "data/vision2/ethernet_pendulum_video_1.MOV"
 
 clicked_coordinates = []
 
@@ -58,15 +58,15 @@ while True:
     blurred = cv.GaussianBlur(frame, (7, 7), 0)
     hsv = cv.cvtColor(blurred, cv.COLOR_BGR2HSV)
 
-    # set the bounds for the red hue
-    lower_red = np.array([150,190,110])
-    upper_red = np.array([180,255,255])
+    # set the bounds for the green hue
+    lower_green = np.array([35, 50, 50])
+    upper_green = np.array([85, 255,255])
 
     # create a mask using the bounds set
-    mask = cv.inRange(hsv, lower_red, upper_red)
+    mask = cv.inRange(hsv, lower_green, upper_green)
     # create an inverse of the mask
     mask_inv = cv.bitwise_not(mask)
-    # Filter only the red colour from the original image using the mask
+    # Filter only the green colour from the original image using the mask
     res = cv.bitwise_and(frame, frame, mask=mask)
 
     # find contour
