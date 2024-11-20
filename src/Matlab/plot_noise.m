@@ -13,7 +13,7 @@ end
 % Read data from log file into a table
 data = readtable(dataFilePath);
 
-% Identify relavant data
+% Identify relevant data
 timeIdx = contains(data.Properties.VariableNames, 'Time');
 time = data{:, timeIdx};
 
