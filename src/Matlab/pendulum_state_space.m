@@ -34,10 +34,11 @@ pxPerInch = data{1, pxPerInchIdx};
 
 % Parameters
 g = 9.81;  % Gravity (m/s^2)
-R = 3 * 0.3048;  % Length of pendulum (3 ft to meters)
-m = 0.073;  % Mass of pendulum (73 g to kg)
-b = 0.1;  % Damping coefficient (arbitrary for now)
-Ts = 0.008;  % Sampling time (s)
+R = 0.4064;  % Length of pendulum (16 inches in meters)
+m = 0.073;  % Mass of pendulum (73g in kg)
+Ts = 1/30;  % Sampling time of 30 FPS video (s)
+
+b = 0.1;  % Damping coefficient (initially unknown)
 
 % Continuous-time state-space matrices
 A_c = [0, 1; -g/R, -b/m];
