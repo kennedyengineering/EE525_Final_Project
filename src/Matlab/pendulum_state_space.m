@@ -1,11 +1,44 @@
+% Modeling pendulum motion from video analysis
+
 clc; clear; close all;
+
+% Define the path to the data file
+dataFilePath = "../../data/vision2_analysis/usb_pendulum_video_1_analysis.csv";
+
+% Check if the file exists
+if ~isfile(dataFilePath)
+    error('Data file does not exist: %s', dataFilePath);
+end
+
+% Read data from log file into a table
+data = readtable(dataFilePath);
+
+% Identify relevant data
+timeIdx = matches(data.Properties.VariableNames, 'Timestamp');
+time = data{:, timeIdx};
+
+posXIdx = matches(data.Properties.VariableNames, 'PosX');
+posX = data{:, posXIdx};
+
+posYIdx = matches(data.Properties.VariableNames, 'PosY');
+posY = data{:, posYIdx};
+
+clickPosXIdx = matches(data.Properties.VariableNames, 'ClkPosX');
+clickPosX = data{1, clickPosXIdx};
+
+clickPosYIdx = matches(data.Properties.VariableNames, 'ClkPosY');
+clickPosY = data{1, clickPosYIdx};
+
+pxPerInchIdx = matches(data.Properties.VariableNames, 'PxPerInch');
+pxPerInch = data{1, pxPerInchIdx};
 
 % Parameters
 g = 9.81;  % Gravity (m/s^2)
-R = 3 * 0.3048;  % Length of pendulum (3 ft to meters)
-m = 0.073;  % Mass of pendulum (73 g to kg)
-b = 0.1;  % Damping coefficient (arbitrary for now)
-Ts = 0.008;  % Sampling time (s)
+R = 0.4064;  % Length of pendulum (16 inches in meters)
+m = 0.073;  % Mass of pendulum (73g in kg)
+Ts = 1/30;  % Sampling time of 30 FPS video (s)
+
+b = 0.1;  % Damping coefficient (initially unknown)
 
 % Continuous-time state-space matrices
 A_c = [0, 1; -g/R, -b/m];
