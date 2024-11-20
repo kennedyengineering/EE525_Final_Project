@@ -1,4 +1,36 @@
+% Modeling pendulum
+
 clc; clear; close all;
+
+% Define the path to the data file
+dataFilePath = "../../data/vision2_analysis/usb_pendulum_video_1_analysis.csv";
+
+% Check if the file exists
+if ~isfile(dataFilePath)
+    error('Data file does not exist: %s', dataFilePath);
+end
+
+% Read data from log file into a table
+data = readtable(dataFilePath);
+
+% Identify relevant data
+timeIdx = matches(data.Properties.VariableNames, 'Timestamp');
+time = data{:, timeIdx};
+
+posXIdx = matches(data.Properties.VariableNames, 'PosX');
+posX = data{:, posXIdx};
+
+posYIdx = matches(data.Properties.VariableNames, 'PosY');
+posY = data{:, posYIdx};
+
+clickPosXIdx = matches(data.Properties.VariableNames, 'ClkPosX');
+clickPosX = data{1, clickPosXIdx};
+
+clickPosYIdx = matches(data.Properties.VariableNames, 'ClkPosY');
+clickPosY = data{1, clickPosYIdx};
+
+pxPerInchIdx = matches(data.Properties.VariableNames, 'PxPerInch');
+pxPerInch = data{1, pxPerInchIdx};
 
 % Parameters
 g = 9.81;  % Gravity (m/s^2)
