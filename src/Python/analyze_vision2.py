@@ -3,7 +3,7 @@
 import numpy as np
 import cv2 as cv
 
-filename = "data/vision2/ethernet_pendulum_video_2.MOV"
+filename = "data/vision2/ethernet_pendulum_video_3.MOV"
 
 clicked_coordinates = []
 
@@ -95,6 +95,14 @@ while True:
             marker_coordinates.append(center)
             radius = int(radius)
             marker_radii.append(radius)
+
+        # sort marker centers
+        centroid = np.mean(marker_coordinates, axis=0)
+
+        def angle_from_centroid(point, centroid):
+            return np.arctan2(point[1] - centroid[1], point[0] - centroid[0])
+
+        marker_coordinates = sorted(marker_coordinates, key=lambda p: angle_from_centroid(p, centroid))
 
     # draw markers
     for center, radius in zip(marker_coordinates, marker_radii):
