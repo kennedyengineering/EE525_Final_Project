@@ -127,19 +127,35 @@ end
 function plot_table_autocorrelation(table, dt, figure_size, titleText, filename)
     figure(Position = figure_size);
     sgtitle(titleText);
-    for i = 1:width(table)
+    num_axes = width(table);
+
+    % Initialize array to store MSV for each axis
+    msv_values = zeros(1, num_axes);
+
+    for i = 1:num_axes
+        % Calculate autocorrelation
         [r, lags] = xcorr(table{:, i}, 'unbiased');
         taus = lags * dt;
-        subplot(width(table), 1, i);
+
+        % Extract Mean Square Value (MSV) at tau = 0
+        msv_values(i) = r(lags == 0);
+
+        % Plot autocorrelation
+        subplot(num_axes, 1, i);
         plot(taus, r, 'LineWidth', 1);
         title(sprintf('%s Autocorrelation', table.Properties.VariableNames{i}));
         xlabel('\tau (s)');
         ylabel('Autocorrelation');
         xlim([taus(1), taus(end)]);
-        % Temporary fix for y-axis limits
-        %ylim([-3*10^(-6), 3*10^(-6)]);
         grid on;
     end
+
+    % Print Mean Square Values (MSV)
+    fprintf('Mean Square Values (MSV) for %s:\n', titleText);
+    for i = 1:num_axes
+        fprintf('Axis %s: %.5f\n', table.Properties.VariableNames{i}, msv_values(i));
+    end
+
     drawnow;
     matlab2tikz(filename, 'width', '1.0\linewidth');
 end
@@ -226,7 +242,7 @@ function plot_ensemble_autocorr(noiseData, dt, sensorType, figureSize)
 
     % Calculate autocorrelation for each trial
     for i = 1:numTrials
-        data = noiseData{i}.noiseTable{:,:};  % Convert table to matrix
+        data = noiseData{i}.noiseTable{:,:};
         [autocorr, lags] = calculate_trial_autocorr(data);
         all_autocorr{i} = autocorr;
         if isempty(taus)
@@ -235,38 +251,45 @@ function plot_ensemble_autocorr(noiseData, dt, sensorType, figureSize)
     end
 
     % Find minimum length and truncate if necessary
-    lengths = cellfun(@(x) size(x,2), all_autocorr);
+    lengths = cellfun(@(x) size(x, 2), all_autocorr);
     min_length = min(lengths);
-    all_autocorr = cellfun(@(x) x(:,1:min_length), all_autocorr, 'UniformOutput', false);
+    all_autocorr = cellfun(@(x) x(:, 1:min_length), all_autocorr, 'UniformOutput', false);
 
     % Convert cell array to 3D matrix for averaging
     autocorr_matrix = cat(3, all_autocorr{:});
     ensemble_autocorr = mean(autocorr_matrix, 3);
 
+    % Calculate and print MSV
+    middle_index = ceil(min_length / 2);  % Middle index corresponds to tau = 0
+    msv_values = ensemble_autocorr(:, middle_index);
+    fprintf('Mean Square Values (MSV) for %s:\n', sensorType);
+    axisNames = {'X', 'Y', 'Z'};
+    for i = 1:size(ensemble_autocorr, 1)
+        fprintf('%s-Axis: %.5f\n', axisNames{i}, msv_values(i));
+    end
+
     % Plot results
     figure('Position', figureSize);
-    axisNames = {'X', 'Y', 'Z'};
-
     for i = 1:3
-        subplot(3,1,i)
-        plot(taus(1:min_length), ensemble_autocorr(i,:), 'LineWidth', 1.5)
-        title(sprintf('%s %s-Axis Ensemble Average Autocorrelation', sensorType, axisNames{i}))
-        xlabel('\tau (s)')
-        ylabel('Autocorrelation')
-        grid on
+        subplot(3, 1, i);
+        plot(taus(1:min_length), ensemble_autocorr(i, :), 'LineWidth', 1.5);
+        title(sprintf('%s %s-Axis Ensemble Average Autocorrelation', sensorType, axisNames{i}));
+        xlabel('\tau (s)');
+        ylabel('Autocorrelation');
+        grid on;
     end
 end
 
 function [autocorr_results, lags] = calculate_trial_autocorr(data)
     num_samples = size(data, 1);
     lags = -(num_samples-1):(num_samples-1);
-    autocorr_results = zeros(size(data,2), length(lags));
+    autocorr_results = zeros(size(data, 2), length(lags));
 
-    for i = 1:size(data,2)
-        signal = data(:,i);
-        signal = signal - mean(signal);  % Remove mean
+    for i = 1:size(data, 2)
+        signal = data(:, i);
+        signal = signal - mean(signal);
         % Calculate autocorrelation and normalize
         autocorr = xcorr(signal, 'unbiased');
-        autocorr_results(i,:) = autocorr;
+        autocorr_results(i, :) = autocorr;
     end
 end
