@@ -64,7 +64,7 @@ function validate_data(folder, filename)
 end
 
 % Get files in data directory
-data_dir = '../../data/static';
+data_dir = '../../data/vision2';
 listing = dir(data_dir);
 
 for i = 1 : length(listing)
