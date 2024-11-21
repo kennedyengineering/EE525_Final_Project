@@ -32,15 +32,32 @@ clickPosY = data{1, clickPosYIdx};  % Initial estimate for fulcrum position
 pxPerInchIdx = matches(data.Properties.VariableNames, 'PxPerInch');
 pxPerInch = data{1, pxPerInchIdx};  % Conversion factor
 
-% Plot observed pendulum position over time
+% Plot observed pendulum position over time (combined)
 figure;
 hold on;
-xlabel('time (s)');
-ylabel('pixel');
-plot(time, posX, 'DisplayName', 'X Position');
-plot(time, posY, 'DisplayName', 'Y Position');
+xlabel('Time (s)');
+ylabel('Position (pixel)');
+plot(time, posX, 'DisplayName', 'X-Axis');
+plot(time, posY, 'DisplayName', 'Y-Axis');
 title('Observed Pendulum Position')
 legend;
+
+% Plot observed pendulum position over time (independently)
+figure;
+sgtitle('Observed Pendulum Position');
+hold on;
+
+subplot(2,1,1);
+plot(time, posX, 'DisplayName', 'X-Axis');
+title('Pendulum Position X-Axis')
+xlabel('Time (s)');
+ylabel('Position (pixel)');
+
+subplot(2,1,2);
+plot(time, posY, 'DisplayName', 'Y-Axis');
+title('Pendulum Position Y-Axis');
+xlabel('Time (s)');
+ylabel('Position (pixel)');
 
 % Plot observed theta and angular velocity
 vec = [posX, posY] - [clickPosX, clickPosY];
