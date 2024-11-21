@@ -32,15 +32,32 @@ clickPosY = data{1, clickPosYIdx};  % Initial estimate for fulcrum position
 pxPerInchIdx = matches(data.Properties.VariableNames, 'PxPerInch');
 pxPerInch = data{1, pxPerInchIdx};  % Conversion factor
 
-% Plot observed pendulum position over time
+% Plot observed pendulum position over time (combined)
 figure;
 hold on;
-xlabel('time (s)');
-ylabel('pixel');
-plot(time, posX, 'DisplayName', 'X Position');
-plot(time, posY, 'DisplayName', 'Y Position');
+xlabel('Time (s)');
+ylabel('Position (pixel)');
+plot(time, posX, 'DisplayName', 'X-Axis');
+plot(time, posY, 'DisplayName', 'Y-Axis');
 title('Observed Pendulum Position')
 legend;
+
+% Plot observed pendulum position over time (independently)
+figure;
+sgtitle('Observed Pendulum Position');
+hold on;
+
+subplot(2,1,1);
+plot(time, posX, 'DisplayName', 'X-Axis');
+title('Pendulum Position X-Axis')
+xlabel('Time (s)');
+ylabel('Position (pixel)');
+
+subplot(2,1,2);
+plot(time, posY, 'DisplayName', 'Y-Axis');
+title('Pendulum Position Y-Axis');
+xlabel('Time (s)');
+ylabel('Position (pixel)');
 
 % Plot observed theta and angular velocity
 vec = [posX, posY] - [clickPosX, clickPosY];
@@ -51,8 +68,8 @@ d_theta = diff(theta) / time(2);
 
 figure;
 hold on;
-xlabel('time (s)');
-ylabel('state');
+xlabel('Time (s)');
+ylabel('State');
 plot(time, theta, 'DisplayName', 'Theta (rad)');
 plot(time(1:end-1), d_theta, 'DisplayName', 'Angular Velocity (rad/s)');
 title('Observed Pendulum Angle and Angular Velocity');
@@ -96,14 +113,14 @@ end
 
 % Plot results
 figure;
-plot(time, x(1, :), 'r', 'DisplayName', '\theta (rad)'); % Angular displacement
+plot(time, x(1, :), 'r', 'DisplayName', 'Theta (rad)'); % Angular displacement
 hold on;
-plot(time, x(2, :), 'b', 'DisplayName', '\dot{\theta} (rad/s)'); % Angular velocity
+plot(time, x(2, :), 'b', 'DisplayName', 'Angular Velocity (rad/s)'); % Angular velocity
 
 % Set up labels and legend
-xlabel('Time (s)', 'Interpreter', 'latex');
-ylabel('State', 'Interpreter', 'latex');
-legend({'$\theta$ (rad)', '$\dot{\theta}$ (rad/s)'}, 'Interpreter', 'latex', 'Location', 'best');
+xlabel('Time (s)');
+ylabel('State');
+legend;
 grid on;
 title('Discrete-Time Simulation of Pendulum', 'Interpreter', 'latex');
 
