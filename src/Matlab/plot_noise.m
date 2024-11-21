@@ -97,13 +97,20 @@ for table={accelNoiseTable}
         values = entry{:, :};
         [pxx, f] = periodogram(values, rectwin(length(values)), length(values), fs, 'psd');
 
+        % Remove DC component
+        f = f(2:end);
+        db_power = pow2db(pxx(2:end));
+        db_power_mean = mean(db_power);
+
         % Plot on subplot
         subplot(width(table{1}), 1, subplotcount);
         subplotcount = subplotcount + 1;
 
         X_name = entry.Properties.VariableNames(1);
 
-        plot(f, pow2db(pxx), 'LineWidth', 1);
+        plot(f, db_power, 'LineWidth', 1);
+        yline(db_power_mean, 'Color', 'r', 'LineWidth', 1.5);
+        text(f(end), db_power_mean, ' Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
         title(strcat(X_name,' Power Spectral Density'));
         xlabel('Frequency (Hz)');
         xlim([f(1), f(end)]);
