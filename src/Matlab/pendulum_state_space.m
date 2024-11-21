@@ -75,13 +75,7 @@ plot(time(1:end-1), d_theta, 'DisplayName', 'Angular Velocity (rad/s)');
 title('Observed Pendulum Angle and Angular Velocity');
 legend;
 
-% Theoretical Parameters
-G = 9.81;  % Gravity (m/s^2)
-R = 0.4064;  % Length of pendulum (16 inches in meters)
-M = 0.073;  % Mass of pendulum (73g in kg)
-Ts = 1/30;  % Sampling time of 30 FPS video (s)
-B = 0.02;  % Damping coefficient (initial guess)
-
+% Define the model
 function X = simulate_system(g, r, m, b, ts, duration, X0)
     % Parameters
     % g - gravity (m/s^2)
@@ -113,7 +107,14 @@ function X = simulate_system(g, r, m, b, ts, duration, X0)
     end
 end
 
-% Simulating the system (optional)
+% Theoretical parameters
+G = 9.81;  % Gravity (m/s^2)
+R = 0.4064;  % Length of pendulum (16 inches in meters)
+M = 0.073;  % Mass of pendulum (73g in kg)
+Ts = 1/30;  % Sampling time of 30 FPS video (s)
+B = 0.02;  % Damping coefficient (initial guess)
+
+% Simulating the system
 x0 = [theta(1); d_theta(1)];
 dt = time(2);
 duration = length(time);
@@ -121,7 +122,7 @@ x = simulate_system(G, R, M, B, dt, duration, x0);
 
 % Plot results
 figure;
-title('Discrete-Time Simulation of Pendulum');
+title('Theoretical Discrete-Time Simulation of Pendulum');
 hold on;
 plot(time, x(1, :), 'r', 'DisplayName', 'Theta (rad)'); % Angular displacement
 plot(time, x(2, :), 'b', 'DisplayName', 'Angular Velocity (rad/s)'); % Angular velocity
