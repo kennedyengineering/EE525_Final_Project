@@ -63,7 +63,7 @@ g = 9.81;  % Gravity (m/s^2)
 R = 0.4064;  % Length of pendulum (16 inches in meters)
 m = 0.073;  % Mass of pendulum (73g in kg)
 Ts = 1/30;  % Sampling time of 30 FPS video (s)
-b = 0.02;  % Damping coefficient (initially unknown)
+b = 0.02;  % Damping coefficient (initial guess)
 
 % Continuous-time state-space matrices
 A_c = [0, 1; -g/R, -b/m];
@@ -106,3 +106,8 @@ ylabel('State', 'Interpreter', 'latex');
 legend({'$\theta$ (rad)', '$\dot{\theta}$ (rad/s)'}, 'Interpreter', 'latex', 'Location', 'best');
 grid on;
 title('Discrete-Time Simulation of Pendulum', 'Interpreter', 'latex');
+
+% TODO
+% use initial guess of beta to start optimization
+% find beta that minimizes error
+% report beta and error
