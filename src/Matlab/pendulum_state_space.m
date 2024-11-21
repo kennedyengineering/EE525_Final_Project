@@ -18,19 +18,59 @@ timeIdx = matches(data.Properties.VariableNames, 'Timestamp');
 time = data{:, timeIdx};
 
 posXIdx = matches(data.Properties.VariableNames, 'PosX');
-posX = data{:, posXIdx};
+posX = data{:, posXIdx};            % Pendulum bob position
 
 posYIdx = matches(data.Properties.VariableNames, 'PosY');
-posY = data{:, posYIdx};
+posY = data{:, posYIdx};            % Pendulum bob position
 
 clickPosXIdx = matches(data.Properties.VariableNames, 'ClkPosX');
-clickPosX = data{1, clickPosXIdx};
+clickPosX = data{1, clickPosXIdx};  % Initial estimate for fulcrum position
 
 clickPosYIdx = matches(data.Properties.VariableNames, 'ClkPosY');
-clickPosY = data{1, clickPosYIdx};
+clickPosY = data{1, clickPosYIdx};  % Initial estimate for fulcrum position
 
 pxPerInchIdx = matches(data.Properties.VariableNames, 'PxPerInch');
-pxPerInch = data{1, pxPerInchIdx};
+pxPerInch = data{1, pxPerInchIdx};  % Conversion factor
+
+% Plot observed pendulum position over time
+figure;
+hold on;
+xlabel('time (s)');
+ylabel('pixel');
+plot(time, posX, 'DisplayName', 'X Position');
+plot(time, posY, 'DisplayName', 'Y Position');
+title('Observed Pendulum Position')
+legend;
+
+% Plot observed theta over time with initial estimated fulcrum position
+vec = [posX, posY] - [clickPosX, clickPosY];
+theta = atan2(vec(:, 1), vec(:, 2));
+
+figure;
+hold on;
+xlabel('time (s)');
+ylabel('rad');
+plot(time, theta, 'DisplayName', 'Theta');
+plot(time, ones(size(time))*mean(theta), 'DisplayName', 'Mean');
+title('Observed Pendulum Angle (uncorrected)');
+legend;
+
+% Plot observed theta over time with final estimated fulcrum position
+shift = mean(posX) - clickPosX;
+vec = [posX, posY] - [clickPosX + shift, clickPosY];
+theta = atan2(vec(:, 1), vec(:, 2));
+
+disp('Fulcrum Position Correction Factor');
+disp(shift);
+
+figure;
+hold on;
+xlabel('time (s)');
+ylabel('rad');
+plot(time, theta, 'DisplayName', 'Theta');
+plot(time, ones(size(time))*mean(theta), 'DisplayName', 'Mean');
+title('Observed Pendulum Angle (corrected)');
+legend;
 
 % Parameters
 g = 9.81;  % Gravity (m/s^2)
