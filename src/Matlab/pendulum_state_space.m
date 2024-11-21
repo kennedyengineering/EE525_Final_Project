@@ -107,7 +107,65 @@ legend({'$\theta$ (rad)', '$\dot{\theta}$ (rad/s)'}, 'Interpreter', 'latex', 'Lo
 grid on;
 title('Discrete-Time Simulation of Pendulum', 'Interpreter', 'latex');
 
-% TODO
-% use initial guess of beta to start optimization
-% find beta that minimizes error
-% report beta and error
+% Finding the optimal beta (damping coefficient)
+function error = calculateMatchError(beta, time, theta_obs, Ts, g, R, m)
+    % State space model
+    A_c = [0, 1; -g/R, -beta/m];
+    A_d = expm(A_c * Ts);
+
+    % Initial conditions using central difference for velocity
+    d_theta_init = (theta_obs(3) - theta_obs(1)) / (2 * Ts);
+    x = zeros(2, length(time));
+    x(:, 1) = [theta_obs(1); d_theta_init];
+
+    % Simulate
+    for k = 1:length(time) - 1
+        x(:, k+1) = A_d * x(:, k);
+    end
+
+    % Calculate frequency-weighted error
+    f = 1 / (2*pi) * sqrt(g/R);  % Natural frequency
+    window = exp(-time/(1/(2*pi*f)));  % Weight earlier oscillations more
+    error = sqrt(mean(window .* (theta_obs - x(1, :)').^2));
+end
+
+% Grid search for initial estimation
+betas = linspace(0.01, 0.1, 50);
+errors = zeros(size(betas));
+for i = 1:length(betas)
+    errors(i) = calculateMatchError(betas(i), time, theta, Ts, g, R, m);
+end
+
+% Find best initial guess
+[~, idx] = min(errors);
+beta_init = betas(idx);
+
+% Fine-tune with optimization
+options = optimset('Display', 'iter', 'TolX', 1e-6);
+beta_opt = fminbnd(@(b) calculateMatchError(b, time, theta, Ts, g, R, m), ...
+    max(0.001, beta_init-0.01), beta_init+0.01, options);
+
+% Final simulation with optimal beta
+A_c = [0, 1; -g/R, -beta_opt/m];
+A_d = expm(A_c * Ts);
+d_theta_init = (theta(3) - theta(1)) / (2 * Ts);
+x_final = zeros(2, length(time));
+x_final(:, 1) = [theta(1); d_theta_init];
+for k = 1:length(time) - 1
+    x_final(:, k+1) = A_d * x_final(:, k);
+end
+
+% Plot results
+figure;
+plot(time, theta, 'b', 'LineWidth', 1.5, 'DisplayName', 'Observed');
+hold on;
+plot(time, x_final(1, :), 'r--', 'LineWidth', 1.5, 'DisplayName', 'Simulated');
+xlabel('Time (s)');
+ylabel('Theta (rad)');
+legend;
+title(sprintf('Pendulum Motion (\\beta = %.4f, RMSE = %.4f)', beta_opt, ...
+    sqrt(mean((theta - x_final(1, :)').^2))));
+grid on;
+
+fprintf('Optimal damping coefficient: %.4f\n', beta_opt);
+fprintf('Final RMSE: %.4f\n', sqrt(mean((theta - x_final(1, :)').^2)));
