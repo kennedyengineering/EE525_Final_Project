@@ -45,6 +45,7 @@ legend;
 % Plot observed theta over time with initial estimated fulcrum position
 vec = [posX, posY] - [clickPosX, clickPosY];
 theta = atan2(vec(:, 1), vec(:, 2));
+theta = theta - mean(theta);    % remove offset caused by marker not being centered
 
 figure;
 hold on;
@@ -53,54 +54,6 @@ ylabel('rad');
 plot(time, theta, 'DisplayName', 'Theta');
 plot(time, ones(size(time))*mean(theta), 'DisplayName', 'Mean');
 title('Observed Pendulum Angle (uncorrected)');
-legend;
-
-% Plot observed pendulum length over time with initial estimated fulcrum
-% position
-vec = [posX, posY] - [clickPosX, clickPosY];
-magnitudes = zeros(1, size(vec, 1));
-for i = 1:size(vec, 1)
-    magnitudes(i) = norm(vec(i, :)); % Compute the magnitude of each 2D vector
-end
-
-figure;
-hold on;
-xlabel('time (s)');
-ylabel('pixels');
-plot(time, magnitudes, 'DisplayName', 'Length');
-title('Observed Pendulum Length (uncorrected');
-legend;
-
-% Plot observed theta over time with final estimated fulcrum position
-shift = mean(posX) - clickPosX;
-vec = [posX, posY] - [clickPosX + shift, clickPosY];
-theta = atan2(vec(:, 1), vec(:, 2));
-
-disp('Fulcrum Position Correction Factor');
-disp(shift);
-
-figure;
-hold on;
-xlabel('time (s)');
-ylabel('rad');
-plot(time, theta, 'DisplayName', 'Theta');
-plot(time, ones(size(time))*mean(theta), 'DisplayName', 'Mean');
-title('Observed Pendulum Angle (corrected)');
-legend;
-
-% Plot observed pendulum length over time with final estimated fulcrum
-% position
-magnitudes = zeros(1, size(vec, 1));
-for i = 1:size(vec, 1)
-    magnitudes(i) = norm(vec(i, :)); % Compute the magnitude of each 2D vector
-end
-
-figure;
-hold on;
-xlabel('time (s)');
-ylabel('pixels');
-plot(time, magnitudes, 'DisplayName', 'Length');
-title('Observed Pendulum Length (corrected)');
 legend;
 
 % Parameters
