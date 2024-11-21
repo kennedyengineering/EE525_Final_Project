@@ -161,9 +161,9 @@ for table={accelNoiseTable}
         ylabel('Mean Linear Acceleration (m/s^2)');
         xlim([time(1), time(end)]);
 
-        text(time(end), rolling_mean_mean, 'Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
-        text(time(end), rolling_mean_mean + rolling_mean_std, '+\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
-        text(time(end), rolling_mean_mean - rolling_mean_std, '-\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_mean_mean, ' Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_mean_mean + rolling_mean_std, ' +\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_mean_mean - rolling_mean_std, ' -\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
 
         % Plot rolling variance
         subplot(width(table{1}), 2, subplotcount);
@@ -180,9 +180,9 @@ for table={accelNoiseTable}
         ylabel('Variance Linear Acceleration (m/s^2)^2');
         xlim([time(1), time(end)]);
 
-        text(time(end), rolling_var_mean, 'Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
-        text(time(end), rolling_var_mean + rolling_var_std, '+\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
-        text(time(end), rolling_var_mean - rolling_var_std, '-\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_var_mean, ' Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_var_mean + rolling_var_std, ' +\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_var_mean - rolling_var_std, ' -\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
     end
 end
 
@@ -313,9 +313,9 @@ for table={gyroNoiseTable}
         ylabel('Mean Angular Velocity (rad/s)');
         xlim([time(1), time(end)]);
 
-        text(time(end), rolling_mean_mean, 'Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
-        text(time(end), rolling_mean_mean + rolling_mean_std, '+\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
-        text(time(end), rolling_mean_mean - rolling_mean_std, '-\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_mean_mean, ' Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_mean_mean + rolling_mean_std, ' +\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_mean_mean - rolling_mean_std, ' -\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
 
         % Plot rolling variance
         subplot(width(table{1}), 2, subplotcount);
@@ -332,8 +332,8 @@ for table={gyroNoiseTable}
         ylabel('Variance Angular Velocity (rad/s)^2');
         xlim([time(1), time(end)]);
 
-        text(time(end), rolling_var_mean, 'Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
-        text(time(end), rolling_var_mean + rolling_var_std, '+\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
-        text(time(end), rolling_var_mean - rolling_var_std, '-\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_var_mean, ' Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_var_mean + rolling_var_std, ' +\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), rolling_var_mean - rolling_var_std, ' -\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
     end
 end
