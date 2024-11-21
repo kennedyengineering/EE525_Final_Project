@@ -122,7 +122,7 @@ xlabel('Time (s)');
 ylabel('State');
 legend;
 grid on;
-title('Discrete-Time Simulation of Pendulum', 'Interpreter', 'latex');
+title('Discrete-Time Simulation of Pendulum');
 
 % TODO
 % use initial guess of beta to start optimization
