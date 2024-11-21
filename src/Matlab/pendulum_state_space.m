@@ -64,7 +64,7 @@ R = 0.4064;  % Length of pendulum (16 inches in meters)
 m = 0.073;  % Mass of pendulum (73g in kg)
 Ts = 1/30;  % Sampling time of 30 FPS video (s)
 
-b = 0.1;  % Damping coefficient (initially unknown)
+b = 0.02;  % Damping coefficient (initially unknown)
 
 % Continuous-time state-space matrices
 A_c = [0, 1; -g/R, -b/m];
@@ -87,8 +87,7 @@ disp('D Matrix:'); disp(D_d);
 
 % Simulating the system (optional)
 % Initial conditions
-x0 = [0.1; 0];  % Initial angle (radians) and angular velocity (rad/s)
-time = 0:Ts:5;  % Simulate for 5 seconds
+x0 = [theta(1); d_theta(1)];  % Initial angle (radians) and angular velocity (rad/s)
 x = zeros(2, length(time));
 x(:, 1) = x0;
 
