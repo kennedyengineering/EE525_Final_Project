@@ -68,8 +68,8 @@ d_theta = diff(theta) / time(2);
 
 figure;
 hold on;
-xlabel('time (s)');
-ylabel('state');
+xlabel('Time (s)');
+ylabel('State');
 plot(time, theta, 'DisplayName', 'Theta (rad)');
 plot(time(1:end-1), d_theta, 'DisplayName', 'Angular Velocity (rad/s)');
 title('Observed Pendulum Angle and Angular Velocity');
@@ -113,14 +113,14 @@ end
 
 % Plot results
 figure;
-plot(time, x(1, :), 'r', 'DisplayName', '\theta (rad)'); % Angular displacement
+plot(time, x(1, :), 'r', 'DisplayName', 'Theta (rad)'); % Angular displacement
 hold on;
-plot(time, x(2, :), 'b', 'DisplayName', '\dot{\theta} (rad/s)'); % Angular velocity
+plot(time, x(2, :), 'b', 'DisplayName', 'Angular Velocity (rad/s)'); % Angular velocity
 
 % Set up labels and legend
-xlabel('Time (s)', 'Interpreter', 'latex');
-ylabel('State', 'Interpreter', 'latex');
-legend({'$\theta$ (rad)', '$\dot{\theta}$ (rad/s)'}, 'Interpreter', 'latex', 'Location', 'best');
+xlabel('Time (s)');
+ylabel('State');
+legend;
 grid on;
 title('Discrete-Time Simulation of Pendulum', 'Interpreter', 'latex');
 
