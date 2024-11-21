@@ -88,6 +88,21 @@ plot(time, ones(size(time))*mean(theta), 'DisplayName', 'Mean');
 title('Observed Pendulum Angle (corrected)');
 legend;
 
+% Plot observed pendulum length over time with final estimated fulcrum
+% position
+magnitudes = zeros(1, size(vec, 1));
+for i = 1:size(vec, 1)
+    magnitudes(i) = norm(vec(i, :)); % Compute the magnitude of each 2D vector
+end
+
+figure;
+hold on;
+xlabel('time (s)');
+ylabel('pixels');
+plot(time, magnitudes, 'DisplayName', 'Length');
+title('Observed Pendulum Length (corrected)');
+legend;
+
 % Parameters
 g = 9.81;  % Gravity (m/s^2)
 R = 0.4064;  % Length of pendulum (16 inches in meters)
