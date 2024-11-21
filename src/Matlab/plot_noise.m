@@ -57,6 +57,17 @@ for table={accelNoiseTable}
         xlim([time(1), time(end)]);
         ylabel('Linear Acceleration (m/s^2)');
         grid on;
+
+        noise_mean = mean(entry{:,:});
+        noise_std = std(entry{:,:});
+
+        yline(noise_mean, 'Color', 'r', 'LineWidth', 1.5);
+        yline(noise_mean + noise_std, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2);
+        yline(noise_mean - noise_std, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2);
+
+        text(time(end), noise_mean, ' Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), noise_mean + noise_std, ' +\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), noise_mean - noise_std, ' -\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
     end
 
     % Plot autocorrelation
@@ -209,6 +220,17 @@ for table={gyroNoiseTable}
         xlim([time(1), time(end)]);
         ylabel('Angular Velocity (rad/s)');
         grid on;
+
+        noise_mean = mean(entry{:,:});
+        noise_std = std(entry{:,:});
+
+        yline(noise_mean, 'Color', 'r', 'LineWidth', 1.5);
+        yline(noise_mean + noise_std, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2);
+        yline(noise_mean - noise_std, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2);
+
+        text(time(end), noise_mean, ' Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), noise_mean + noise_std, ' +\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+        text(time(end), noise_mean - noise_std, ' -\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
     end
 
     % Plot autocorrelation
