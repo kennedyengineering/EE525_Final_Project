@@ -42,18 +42,20 @@ plot(time, posY, 'DisplayName', 'Y Position');
 title('Observed Pendulum Position')
 legend;
 
-% Plot observed theta over time with initial estimated fulcrum position
+% Plot observed theta and angular velocity
 vec = [posX, posY] - [clickPosX, clickPosY];
 theta = atan2(vec(:, 1), vec(:, 2));
 theta = theta - mean(theta);    % remove offset caused by marker not being centered
 
+d_theta = diff(theta) / time(2);
+
 figure;
 hold on;
 xlabel('time (s)');
-ylabel('rad');
-plot(time, theta, 'DisplayName', 'Theta');
-plot(time, ones(size(time))*mean(theta), 'DisplayName', 'Mean');
-title('Observed Pendulum Angle (uncorrected)');
+ylabel('state');
+plot(time, theta, 'DisplayName', 'Theta (rad)');
+plot(time(1:end-1), d_theta, 'DisplayName', 'Angular Velocity (rad/s)');
+title('Observed Pendulum Angle and Angular Velocity');
 legend;
 
 % Parameters
