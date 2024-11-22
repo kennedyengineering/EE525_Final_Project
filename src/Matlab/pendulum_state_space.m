@@ -108,7 +108,7 @@ function x = simulate_system(g, r, m, b, ts, duration, x0)
 end
 
 % Theoretical parameters
-G = 9.81;  % Gravity (m/s^2)
+G = 9.80665;  % Gravity (m/s^2)
 R = 0.4064;  % Length of pendulum (16 inches in meters)
 M = 0.073;  % Mass of pendulum (73g in kg)
 Ts = 1/30;  % Sampling time of 30 FPS video (s)
@@ -144,15 +144,15 @@ legend;
 grid on;
 
 % Define objective function
-function error = objective(params, ts, duration, x0, true_theta)
-    x = simulate_system(params(1), params(2), params(3), params(4), ts, duration, x0);
+function error = objective(params, g, ts, duration, x0, true_theta)
+    x = simulate_system(g, params(1), params(2), params(3), ts, duration, x0);
     error = sum((x(1,:) - true_theta').^2);
 end
 
-objective_fn = @(params) objective(params, Ts, Duration, X0, theta);
+objective_fn = @(params) objective(params, G, Ts, Duration, X0, theta);
 
 % Optimization using fminsearch to minimize the objective function
-initial_guess = [G, R, M, B];
+initial_guess = [R, M, B];
 [optimal_params, squared_error] = fminsearch(objective_fn, initial_guess);
 
 % Show status before optimization
@@ -168,7 +168,7 @@ disp("Optimal squared error");
 disp(squared_error);
 
 % Plot results
-X_optimal = simulate_system(optimal_params(1), optimal_params(2), optimal_params(3), optimal_params(4), Ts, Duration, X0);
+X_optimal = simulate_system(G, optimal_params(1), optimal_params(2), optimal_params(3), Ts, Duration, X0);
 
 figure;
 title('Optimal Discrete-Time Simulation of Pendulum');
@@ -186,7 +186,7 @@ hold on;
 plot(time, X_optimal(1, :), 'r', 'DisplayName', 'Simulated Theta (rad)');
 plot(time, X_optimal(2, :), 'b', 'DisplayName', 'Simulated Angular Velocity (rad/s)');
 plot(time, theta, 'DisplayName', 'Observed Theta (rad)');
-plot(time(1:end-1), d_theta, 'DisplayName', ' Observed Angular Velocity (rad/s)');
+plot(time(1:end-1), d_theta, 'DisplayName', 'Observed Angular Velocity (rad/s)');
 xlabel('Time (s)');
 ylabel('State');
 legend;
