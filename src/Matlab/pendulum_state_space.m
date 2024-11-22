@@ -107,7 +107,7 @@ function x = simulate_system(g, r, m, b, ts, duration, x0)
     end
 end
 
-function plot_observability_ellipsoid_system(g, r, m, b, ts, title_str, xlabel_str, ylabel_str)
+function plot_observability_ellipsoid(g, r, m, b, ts, trans, title_str, xlabel_str, ylabel_str)
     % Continuous-time state-space matrices
     A_c = [0, 1; -g/r, -b/m];
     C_c = eye(2);  % Identity matrix
@@ -122,41 +122,17 @@ function plot_observability_ellipsoid_system(g, r, m, b, ts, title_str, xlabel_s
     for i = 0:n_states-1
         O_d = [O_d; C_d * (A_d^i)];
     end
-    G_o_d = O_d' * O_d;
+    G = O_d' * O_d;
 
-    % Plot observability ellipsoid
-    plot_observability_ellipsoid(G_o_d, title_str, xlabel_str, ylabel_str);
-end
-
-function plot_transformed_observability_ellipsoid(g, r, m, b, ts, title_str, xlabel_str, ylabel_str)
-    % Continuous-time state-space matrices
-    A_c = [0, 1; -g/r, -b/m];
-    C_c = eye(2);  % Identity matrix
-
-    % Discretize the system
-    A_d = expm(A_c * ts);
-    C_d = C_c;
-
-    % Compute Observability Gramian
-    n_states = size(A_d, 1);
-    O_d = [];
-    for i = 0:n_states-1
-        O_d = [O_d; C_d * (A_d^i)];
+    % Transformation matrix (optional)
+    if trans
+        [V, E] = eig(G);
+        T = sqrt(E) * V';
+        Obz = [C_d / T; C_d / T * T * A_d / T];
+        G = Obz' * Obz;
     end
-    G_o_d = O_d' * O_d;
-
-    % Transformation matrix
-    [V, E] = eig(G_o_d);
-    T = sqrt(E) * V';
-    Obz = [C_d / T; C_d / T * T * A_d / T];
-    Gz = Obz' * Obz;
 
     % Plot transformed observability ellipsoid
-    plot_observability_ellipsoid(Gz, title_str, xlabel_str, ylabel_str);
-end
-
-function plot_observability_ellipsoid(G, title_str, xlabel_str, ylabel_str)
-    % Eigen decomposition
     [eig_vectors, eig_values] = eig(G);
     eigenvalues = diag(eig_values);
     [sorted_eigenvalues, idx] = sort(eigenvalues, 'descend');
@@ -208,13 +184,13 @@ Ts = time(2);
 X_theoretical = simulate_system(G, R, M, B, Ts, Duration, X0);
 
 % Compute and plot original observability ellipsoid
-plot_observability_ellipsoid_system(G, R, M, B, Ts, ...
+plot_observability_ellipsoid(G, R, M, B, Ts, false, ...
     'Original Observability Ellipsoid', ...
     '$\theta$ (Angular Displacement)', ...
     '$\dot{\theta}$ (Angular Velocity)');
 
 % Compute and plot transformed observability ellipsoid
-plot_transformed_observability_ellipsoid(G, R, M, B, Ts, ...
+plot_observability_ellipsoid(G, R, M, B, Ts, true, ...
     'Transformed Observability Ellipsoid', ...
     '$z_1$ (Transformed State 1)', ...
     '$z_2$ (Transformed State 2)');
