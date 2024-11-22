@@ -154,9 +154,17 @@ objective_fn = @(params) objective(params, Ts, Duration, X0, theta);
 % Optimization using fminsearch to minimize the objective function
 initial_guess = [G, R, M, B];
 [optimal_params, squared_error] = fminsearch(objective_fn, initial_guess);
+
+% Show status before optimization
+disp('Unoptimized parameters');
+disp(initial_guess)
+disp('Unoptimized squared error');
+disp(objective_fn(initial_guess));
+
+% Show status after optimization
 disp("Optimal parameters");
 disp(optimal_params);
-disp("Minimum squared error");
+disp("Optimal squared error");
 disp(squared_error);
 
 % Plot results
