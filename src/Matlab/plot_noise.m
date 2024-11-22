@@ -70,6 +70,34 @@ for table={accelNoiseTable}
         text(time(end), noise_mean - noise_std, ' -\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
     end
 
+    % Plot noise distribution
+    figure(Position=figure_size);
+    sgtitle('Accelerometer Noise Amplitude Distribution');
+    hold on;
+    subplotcount = 1;
+
+    for entry=table{1}
+
+        % Plot on subplot
+        subplot(width(table{1}), 1, subplotcount);
+        subplotcount = subplotcount + 1;
+
+        noise_mean = mean(entry{:,:});
+        noise_std = std(entry{:,:});
+
+        x = linspace(min(entry{:, :}), max(entry{:, :}), 100);
+        y = normpdf(x, noise_mean, noise_std);
+
+        X_name = entry.Properties.VariableNames(1);
+
+        hold on;
+        histogram(entry{:, :}, 30, 'Normalization', 'pdf');
+        plot(x, y);
+        title(strcat(X_name,' Amplitude Distribution of Noise'));
+        xlabel('Amplitude');
+        ylabel('Probability Density');
+    end
+
     % Plot autocorrelation
     figure(Position=figure_size);
     sgtitle('Accelerometer Noise Autocorrelation (Unbiased Estimate)');
@@ -231,6 +259,34 @@ for table={gyroNoiseTable}
         text(time(end), noise_mean, ' Mean', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
         text(time(end), noise_mean + noise_std, ' +\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
         text(time(end), noise_mean - noise_std, ' -\sigma', 'Color', 'r', 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
+    end
+
+    % Plot noise distribution
+    figure(Position=figure_size);
+    sgtitle('Gyroscope Noise Amplitude Distribution');
+    hold on;
+    subplotcount = 1;
+
+    for entry=table{1}
+
+        % Plot on subplot
+        subplot(width(table{1}), 1, subplotcount);
+        subplotcount = subplotcount + 1;
+
+        noise_mean = mean(entry{:,:});
+        noise_std = std(entry{:,:});
+
+        x = linspace(min(entry{:, :}), max(entry{:, :}), 100);
+        y = normpdf(x, noise_mean, noise_std);
+
+        X_name = entry.Properties.VariableNames(1);
+
+        hold on;
+        histogram(entry{:, :}, 30, 'Normalization', 'pdf');
+        plot(x, y);
+        title(strcat(X_name,' Amplitude Distribution of Noise'));
+        xlabel('Amplitude');
+        ylabel('Probability Density');
     end
 
     % Plot autocorrelation
