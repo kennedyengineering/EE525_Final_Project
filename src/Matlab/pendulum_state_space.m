@@ -75,56 +75,99 @@ plot(time(1:end-1), d_theta, 'DisplayName', 'Angular Velocity (rad/s)');
 title('Observed Pendulum Angle and Angular Velocity');
 legend;
 
-% Parameters
-g = 9.81;  % Gravity (m/s^2)
-R = 0.4064;  % Length of pendulum (16 inches in meters)
-m = 0.073;  % Mass of pendulum (73g in kg)
-Ts = 1/30;  % Sampling time of 30 FPS video (s)
-b = 0.02;  % Damping coefficient (initial guess)
+% Define the model
+function x = simulate_system(g, r, m, b, ts, duration, x0)
+    % Parameters
+    % g - gravity (m/s^2)
+    % r - radius of pendulum (m)
+    % m - mass of pendulum (kg)
+    % ts - sample time (s)
+    % b - damping coefficient
+    % X - state (rad, rad/s)
+    % X0 - initial state (rad, rad/s)
 
-% Continuous-time state-space matrices
-A_c = [0, 1; -g/R, -b/m];
-B_c = [0; 0];
-C_c = eye(2);  % Identity matrix
-D_c = [0; 0];
+    % Continuous-time state-space matrices
+    A_c = [0, 1; -g/r, -b/m];
+    B_c = [0; 0];
+    C_c = eye(2);  % Identity matrix
+    D_c = [0; 0];
 
-% Discretization
-A_d = expm(A_c * Ts);
-B_d = integral(@(t) expm(A_c * t) * B_c, 0, Ts, 'ArrayValued', true);
-C_d = C_c;
-D_d = D_c;
+    % Discretization
+    A_d = expm(A_c * ts);
+    B_d = integral(@(t) expm(A_c * t) * B_c, 0, ts, 'ArrayValued', true);
+    C_d = C_c;
+    D_d = D_c;
 
-% Display results
-disp('Continuous-Time A Matrix:'); disp(A_c);
-disp('Discrete-Time A Matrix:'); disp(A_d);
-disp('Discrete-Time B Matrix:'); disp(B_d);
-disp('C Matrix:'); disp(C_d);
-disp('D Matrix:'); disp(D_d);
+    % Initial conditions
+    x = zeros(2, duration);
+    x(:, 1) = x0;
 
-% Simulating the system (optional)
-% Initial conditions
-x0 = [theta(1); d_theta(1)];  % Initial angle (radians) and angular velocity (rad/s)
-x = zeros(2, length(time));
-x(:, 1) = x0;
-
-for k = 1:length(time) - 1
-    x(:, k+1) = A_d * x(:, k);  % No input since B_d * u = 0
+    for k = 1:duration - 1
+        x(:, k+1) = A_d * x(:, k);  % No input since B_d * u = 0
+    end
 end
+
+% Theoretical parameters
+G = 9.81;  % Gravity (m/s^2)
+R = 0.4064;  % Length of pendulum (16 inches in meters)
+M = 0.073;  % Mass of pendulum (73g in kg)
+Ts = 1/30;  % Sampling time of 30 FPS video (s)
+B = 0.02;  % Damping coefficient (initial guess)
+
+% Simulating the system
+X0 = [theta(1); d_theta(1)];
+Duration = length(time);
+Ts = time(2);
+X_theoretical = simulate_system(G, R, M, B, Ts, Duration, X0);
 
 % Plot results
 figure;
-plot(time, x(1, :), 'r', 'DisplayName', 'Theta (rad)'); % Angular displacement
+title('Theoretical Discrete-Time Simulation of Pendulum');
 hold on;
-plot(time, x(2, :), 'b', 'DisplayName', 'Angular Velocity (rad/s)'); % Angular velocity
-
-% Set up labels and legend
+plot(time, X_theoretical(1, :), 'r', 'DisplayName', 'Theta (rad)'); % Angular displacement
+plot(time, X_theoretical(2, :), 'b', 'DisplayName', 'Angular Velocity (rad/s)'); % Angular velocity
 xlabel('Time (s)');
 ylabel('State');
 legend;
 grid on;
-title('Discrete-Time Simulation of Pendulum');
 
-% TODO
-% use initial guess of beta to start optimization
-% find beta that minimizes error
-% report beta and error
+% Define objective function
+function error = objective(params, ts, duration, x0, true_theta)
+    x = simulate_system(params(1), params(2), params(3), params(4), ts, duration, x0);
+    error = sum((x(1,:) - true_theta').^2);
+end
+
+objective_fn = @(params) objective(params, Ts, Duration, X0, theta);
+
+% Optimization using fminsearch to minimize the objective function
+initial_guess = [G, R, M, B];
+[optimal_params, squared_error] = fminsearch(objective_fn, initial_guess);
+disp("Optimal parameters");
+disp(optimal_params);
+disp("Minimum squared error");
+disp(squared_error);
+
+% Plot results
+X_optimal = simulate_system(optimal_params(1), optimal_params(2), optimal_params(3), optimal_params(4), Ts, Duration, X0);
+
+figure;
+title('Optimal Discrete-Time Simulation of Pendulum');
+hold on;
+plot(time, X_optimal(1, :), 'r', 'DisplayName', 'Theta (rad)'); % Angular displacement
+plot(time, X_optimal(2, :), 'b', 'DisplayName', 'Angular Velocity (rad/s)'); % Angular velocity
+xlabel('Time (s)');
+ylabel('State');
+legend;
+grid on;
+
+figure;
+title('Optimal Discrete-Time Simulation of Pendulum vs Observed State');
+hold on;
+plot(time, X_optimal(1, :), 'r', 'DisplayName', 'Simulated Theta (rad)');
+plot(time, X_optimal(2, :), 'b', 'DisplayName', 'Simulated Angular Velocity (rad/s)');
+plot(time, theta, 'DisplayName', 'Observed Theta (rad)');
+plot(time(1:end-1), d_theta, 'DisplayName', ' Observed Angular Velocity (rad/s)');
+xlabel('Time (s)');
+ylabel('State');
+legend;
+grid on;
