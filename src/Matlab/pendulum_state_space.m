@@ -107,69 +107,6 @@ function x = simulate_system(g, r, m, b, ts, duration, x0)
     end
 end
 
-function plot_observability_ellipsoid(g, r, m, b, ts, trans, title_str, xlabel_str, ylabel_str)
-    % Continuous-time state-space matrices
-    A_c = [0, 1; -g/r, -b/m];
-    C_c = eye(2);  % Identity matrix
-
-    % Discretize the system
-    A_d = expm(A_c * ts);
-    C_d = C_c;
-
-    % Compute Observability Gramian
-    n_states = size(A_d, 1);
-    O_d = [];
-    for i = 0:n_states-1
-        O_d = [O_d; C_d * (A_d^i)];
-    end
-    G = O_d' * O_d;
-
-    % Transformation matrix (optional)
-    if trans
-        [V, E] = eig(G);
-        T = sqrt(E) * V';
-        Obz = [C_d / T; C_d / T * T * A_d / T];
-        G = Obz' * Obz;
-    end
-
-    % Plot transformed observability ellipsoid
-    [eig_vectors, eig_values] = eig(G);
-    eigenvalues = diag(eig_values);
-    [sorted_eigenvalues, idx] = sort(eigenvalues, 'descend');
-    sorted_eigenvectors = eig_vectors(:, idx);
-
-    % Define semi-major and semi-minor axes
-    a = 1 / sqrt(sorted_eigenvalues(1));
-    b = 1 / sqrt(sorted_eigenvalues(2));
-
-    % Generate ellipse coordinates
-    theta = linspace(0, 2*pi, 100);
-    ellipse_x = a * cos(theta);
-    ellipse_y = b * sin(theta);
-    ellipse_coords = [ellipse_x; ellipse_y];
-    rotated_ellipse = sorted_eigenvectors * ellipse_coords;
-
-    % Most and least observable directions
-    most_observable_vector = sorted_eigenvectors(:, 1);
-    least_observable_vector = sorted_eigenvectors(:, 2);
-
-    % Plot
-    figure;
-    plot(rotated_ellipse(1, :), rotated_ellipse(2, :), 'k-', 'LineWidth', 1.5);
-    hold on;
-    quiver(0, 0, most_observable_vector(1), most_observable_vector(2), a, ...
-        'Color', 'b', 'LineWidth', 1.5, 'MaxHeadSize', 2);
-    quiver(0, 0, least_observable_vector(1), least_observable_vector(2), b, ...
-        'Color', 'r', 'LineWidth', 1.5, 'MaxHeadSize', 2);
-    xlabel(xlabel_str, 'Interpreter', 'latex', 'FontSize', 14);
-    ylabel(ylabel_str, 'Interpreter', 'latex', 'FontSize', 14);
-    title(title_str, 'Interpreter', 'latex', 'FontSize', 16);
-    legend('Ellipsoid', 'Most Observable', 'Least Observable', 'Location', 'best');
-    grid on;
-    axis equal;
-    hold off;
-end
-
 % Theoretical parameters
 G = 9.81;  % Gravity (m/s^2)
 R = 0.4064;  % Length of pendulum (16 inches in meters)
@@ -182,18 +119,6 @@ X0 = [theta(1); d_theta(1)];
 Duration = length(time);
 Ts = time(2);
 X_theoretical = simulate_system(G, R, M, B, Ts, Duration, X0);
-
-% Compute and plot original observability ellipsoid
-plot_observability_ellipsoid(G, R, M, B, Ts, false, ...
-    'Original Observability Ellipsoid', ...
-    '$\theta$ (Angular Displacement)', ...
-    '$\dot{\theta}$ (Angular Velocity)');
-
-% Compute and plot transformed observability ellipsoid
-plot_observability_ellipsoid(G, R, M, B, Ts, true, ...
-    'Transformed Observability Ellipsoid', ...
-    '$z_1$ (Transformed State 1)', ...
-    '$z_2$ (Transformed State 2)');
 
 % Plot results
 figure;
@@ -266,3 +191,89 @@ xlabel('Time (s)');
 ylabel('State');
 legend;
 grid on;
+
+% Define the observability ellipse
+function plot_observability_ellipsoid(g, r, m, b, ts, trans, title_str, xlabel_str, ylabel_str)
+    % Continuous-time state-space matrices
+    A_c = [0, 1; -g/r, -b/m];
+    C_c = eye(2);  % Identity matrix
+
+    % Discretize the system
+    A_d = expm(A_c * ts);
+    C_d = C_c;
+
+    % Compute Observability Gramian
+    n_states = size(A_d, 1);
+    O_d = [];
+    for i = 0:n_states-1
+        O_d = [O_d; C_d * (A_d^i)];
+    end
+    G = O_d' * O_d;
+
+    % Transformation matrix (optional)
+    if trans
+        [V, E] = eig(G);
+        T = sqrt(E) * V';
+        Obz = [C_d / T; C_d / T * T * A_d / T];
+        G = Obz' * Obz;
+    end
+
+    % Plot transformed observability ellipsoid
+    [eig_vectors, eig_values] = eig(G);
+    eigenvalues = diag(eig_values);
+    [sorted_eigenvalues, idx] = sort(eigenvalues, 'descend');
+    sorted_eigenvectors = eig_vectors(:, idx);
+
+    % Define semi-major and semi-minor axes
+    a = 1 / sqrt(sorted_eigenvalues(1));
+    b = 1 / sqrt(sorted_eigenvalues(2));
+
+    % Generate ellipse coordinates
+    theta = linspace(0, 2*pi, 100);
+    ellipse_x = a * cos(theta);
+    ellipse_y = b * sin(theta);
+    ellipse_coords = [ellipse_x; ellipse_y];
+    rotated_ellipse = sorted_eigenvectors * ellipse_coords;
+
+    % Most and least observable directions
+    most_observable_vector = sorted_eigenvectors(:, 1);
+    least_observable_vector = sorted_eigenvectors(:, 2);
+
+    % Plot
+    figure;
+    plot(rotated_ellipse(1, :), rotated_ellipse(2, :), 'k-', 'LineWidth', 1.5);
+    hold on;
+    quiver(0, 0, most_observable_vector(1), most_observable_vector(2), a, ...
+        'Color', 'b', 'LineWidth', 1.5, 'MaxHeadSize', 2);
+    quiver(0, 0, least_observable_vector(1), least_observable_vector(2), b, ...
+        'Color', 'r', 'LineWidth', 1.5, 'MaxHeadSize', 2);
+    xlabel(xlabel_str, 'Interpreter', 'latex', 'FontSize', 14);
+    ylabel(ylabel_str, 'Interpreter', 'latex', 'FontSize', 14);
+    title(title_str, 'Interpreter', 'latex', 'FontSize', 16);
+    legend('Ellipsoid', 'Most Observable', 'Least Observable', 'Location', 'best');
+    grid on;
+    axis equal;
+    hold off;
+end
+
+% Compute and plot observability ellipsoid with theoretical values
+plot_observability_ellipsoid(G, R, M, B, Ts, false, ...
+    'Theoretical Observability Ellipsoid', ...
+    '$\theta$ (Angular Displacement)', ...
+    '$\dot{\theta}$ (Angular Velocity)');
+
+plot_observability_ellipsoid(G, R, M, B, Ts, true, ...
+    'Theoretical Transformed Observability Ellipsoid', ...
+    '$z_1$ (Transformed State 1)', ...
+    '$z_2$ (Transformed State 2)');
+
+% Compute and plot observability ellipsoid with optimal values
+plot_observability_ellipsoid(G, optimal_params(1), optimal_params(2), optimal_params(3), Ts, false, ...
+    'Optimal Observability Ellipsoid', ...
+    '$\theta$ (Angular Displacement)', ...
+    '$\dot{\theta}$ (Angular Velocity)');
+
+plot_observability_ellipsoid(G, optimal_params(1), optimal_params(2), optimal_params(3), Ts, true, ...
+    'Optimal Transformed Observability Ellipsoid', ...
+    '$z_1$ (Transformed State 1)', ...
+    '$z_2$ (Transformed State 2)');
