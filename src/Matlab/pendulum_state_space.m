@@ -137,7 +137,7 @@ hold on;
 plot(time, X_theoretical(1, :), 'r', 'DisplayName', 'Simulated Theta (rad)');
 plot(time, X_theoretical(2, :), 'b', 'DisplayName', 'Simulated Angular Velocity (rad/s)');
 plot(time, theta, 'DisplayName', 'Observed Theta (rad)');
-plot(time(1:end-1), d_theta, 'DisplayName', ' Observed Angular Velocity (rad/s)');
+plot(time(1:end-1), d_theta, 'DisplayName', 'Observed Angular Velocity (rad/s)');
 xlabel('Time (s)');
 ylabel('State');
 legend;
@@ -196,7 +196,7 @@ grid on;
 function plot_observability_ellipsoid(g, r, m, b, ts, trans, title_str, xlabel_str, ylabel_str)
     % Continuous-time state-space matrices
     A_c = [0, 1; -g/r, -b/m];
-    C_c = eye(2);  % Identity matrix
+    C_c = eye(2);
 
     % Discretize the system
     A_d = expm(A_c * ts);
@@ -247,10 +247,10 @@ function plot_observability_ellipsoid(g, r, m, b, ts, trans, title_str, xlabel_s
         'Color', 'b', 'LineWidth', 1.5, 'MaxHeadSize', 2);
     quiver(0, 0, least_observable_vector(1), least_observable_vector(2), b, ...
         'Color', 'r', 'LineWidth', 1.5, 'MaxHeadSize', 2);
-    xlabel(xlabel_str, 'Interpreter', 'latex', 'FontSize', 14);
-    ylabel(ylabel_str, 'Interpreter', 'latex', 'FontSize', 14);
-    title(title_str, 'Interpreter', 'latex', 'FontSize', 16);
-    legend('Ellipsoid', 'Most Observable', 'Least Observable', 'Location', 'best');
+    xlabel(xlabel_str);
+    ylabel(ylabel_str);
+    title(title_str);
+    legend('Ellipsoid', 'Most Observable', 'Least Observable');
     grid on;
     axis equal;
     hold off;
@@ -259,21 +259,21 @@ end
 % Compute and plot observability ellipsoid with theoretical values
 plot_observability_ellipsoid(G, R, M, B, Ts, false, ...
     'Theoretical Observability Ellipsoid', ...
-    '$\theta$ (Angular Displacement)', ...
-    '$\dot{\theta}$ (Angular Velocity)');
+    'Theta', ...
+    'Angular Velocity');
 
 plot_observability_ellipsoid(G, R, M, B, Ts, true, ...
     'Theoretical Transformed Observability Ellipsoid', ...
-    '$z_1$ (Transformed State 1)', ...
-    '$z_2$ (Transformed State 2)');
+    'z_1 (Transformed State 1)', ...
+    'z_2 (Transformed State 2)');
 
 % Compute and plot observability ellipsoid with optimal values
 plot_observability_ellipsoid(G, optimal_params(1), optimal_params(2), optimal_params(3), Ts, false, ...
     'Optimal Observability Ellipsoid', ...
-    '$\theta$ (Angular Displacement)', ...
-    '$\dot{\theta}$ (Angular Velocity)');
+    'Theta', ...
+    'Angular Velocity');
 
 plot_observability_ellipsoid(G, optimal_params(1), optimal_params(2), optimal_params(3), Ts, true, ...
     'Optimal Transformed Observability Ellipsoid', ...
-    '$z_1$ (Transformed State 1)', ...
-    '$z_2$ (Transformed State 2)');
+    'z_1 (Transformed State 1)', ...
+    'z_2 (Transformed State 2)');
