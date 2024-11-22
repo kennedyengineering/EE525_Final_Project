@@ -216,6 +216,9 @@ function plot_observability_ellipsoid(g, r, m, b, ts, trans, title_str, xlabel_s
         T = sqrt(E) * V';
         Obz = [C_d / T; C_d / T * T * A_d / T];
         G = Obz' * Obz;
+
+        disp([title_str, ' Transformation Matrix']);
+        disp(T);
     end
 
     % Plot transformed observability ellipsoid
