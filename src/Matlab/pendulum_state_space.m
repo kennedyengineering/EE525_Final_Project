@@ -131,6 +131,18 @@ ylabel('State');
 legend;
 grid on;
 
+figure;
+title('Theoretical Discrete-Time Simulation of Pendulum vs Observed State');
+hold on;
+plot(time, X_theoretical(1, :), 'r', 'DisplayName', 'Simulated Theta (rad)');
+plot(time, X_theoretical(2, :), 'b', 'DisplayName', 'Simulated Angular Velocity (rad/s)');
+plot(time, theta, 'DisplayName', 'Observed Theta (rad)');
+plot(time(1:end-1), d_theta, 'DisplayName', ' Observed Angular Velocity (rad/s)');
+xlabel('Time (s)');
+ylabel('State');
+legend;
+grid on;
+
 % Define objective function
 function error = objective(params, ts, duration, x0, true_theta)
     x = simulate_system(params(1), params(2), params(3), params(4), ts, duration, x0);
@@ -142,9 +154,17 @@ objective_fn = @(params) objective(params, Ts, Duration, X0, theta);
 % Optimization using fminsearch to minimize the objective function
 initial_guess = [G, R, M, B];
 [optimal_params, squared_error] = fminsearch(objective_fn, initial_guess);
+
+% Show status before optimization
+disp('Unoptimized parameters');
+disp(initial_guess)
+disp('Unoptimized squared error');
+disp(objective_fn(initial_guess));
+
+% Show status after optimization
 disp("Optimal parameters");
 disp(optimal_params);
-disp("Minimum squared error");
+disp("Optimal squared error");
 disp(squared_error);
 
 % Plot results
