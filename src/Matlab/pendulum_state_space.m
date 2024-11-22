@@ -75,6 +75,42 @@ plot(time(1:end-1), d_theta, 'DisplayName', 'Angular Velocity (rad/s)');
 title('Observed Pendulum Angle and Angular Velocity');
 legend;
 
+
+% Function to Compute and Plot the Ellipsoid
+function [x_coords,y_coords] = ellipse2(G,Npoints)
+    %% Draw the perimeter of the ellipsoid in R^2 such that x'*G*x = 1
+    % Citation:
+    % https://www.mathworks.com/matlabcentral/answers/86615−how−to−plot−an−ellipse
+    [V,E] = eigs(G,2,'smallestabs'); % Index 1 will be smallest, so major axis.
+    E = diag(E);
+    b = 1/sqrt(max(E));
+    a = 1/sqrt(min(E));
+    switch nargin
+        case 2
+            t = linspace(0,2*pi,Npoints);
+        case 1
+            t = linspace(0,2*pi,1e2);
+        otherwise
+            error('ellipse2:nargin','Unexpected number of input arguments.');
+    end
+    % This gives a normal ellipse with major axis dead horizontal.
+    x = a*cos(t);
+    y = b*sin(t);
+    % V(1,2) is vertical component of semi−major axis endpoint.
+    % V(1,1) is horizontal component of semi−major axis endpoint.
+    theta = atan2(V(1,2),V(1,1));
+    % Rotation matrix
+    R = [cos(theta), -sin(theta);
+        sin(theta), cos(theta)];
+    % Rotate coordinates of normal ellipse
+    C = R*[x;y];
+    x_coords = C(1,:);
+    y_coords = C(2,:);
+    if nargout == 0
+        plot(x_coords,y_coords);
+    end
+end
+
 % Define the model
 function x = simulate_system(g, r, m, b, ts, duration, x0)
     % Parameters
@@ -107,6 +143,93 @@ function x = simulate_system(g, r, m, b, ts, duration, x0)
     end
 end
 
+function plot_observability_ellipsoid_system(g, r, m, b, ts, title_str, xlabel_str, ylabel_str)
+    % Continuous-time state-space matrices
+    A_c = [0, 1; -g/r, -b/m];
+    C_c = eye(2);  % Identity matrix
+
+    % Discretize the system
+    A_d = expm(A_c * ts);
+    C_d = C_c;
+
+    % Compute Observability Gramian
+    n_states = size(A_d, 1);
+    O_d = [];
+    for i = 0:n_states-1
+        O_d = [O_d; C_d * (A_d^i)];
+    end
+    G_o_d = O_d' * O_d;
+
+    % Plot observability ellipsoid
+    plot_observability_ellipsoid(G_o_d, title_str, xlabel_str, ylabel_str);
+end
+
+function plot_transformed_observability_ellipsoid(g, r, m, b, ts, title_str, xlabel_str, ylabel_str)
+    % Continuous-time state-space matrices
+    A_c = [0, 1; -g/r, -b/m];
+    C_c = eye(2);  % Identity matrix
+
+    % Discretize the system
+    A_d = expm(A_c * ts);
+    C_d = C_c;
+
+    % Compute Observability Gramian
+    n_states = size(A_d, 1);
+    O_d = [];
+    for i = 0:n_states-1
+        O_d = [O_d; C_d * (A_d^i)];
+    end
+    G_o_d = O_d' * O_d;
+
+    % Transformation matrix
+    [V, E] = eig(G_o_d);
+    T = sqrt(E) * V';
+    Obz = [C_d / T; C_d / T * T * A_d / T];
+    Gz = Obz' * Obz;
+
+    % Plot transformed observability ellipsoid
+    plot_observability_ellipsoid(Gz, title_str, xlabel_str, ylabel_str);
+end
+
+function plot_observability_ellipsoid(G, title_str, xlabel_str, ylabel_str)
+    % Eigen decomposition
+    [eig_vectors, eig_values] = eig(G);
+    eigenvalues = diag(eig_values);
+    [sorted_eigenvalues, idx] = sort(eigenvalues, 'descend');
+    sorted_eigenvectors = eig_vectors(:, idx);
+
+    % Define semi-major and semi-minor axes
+    a = 1 / sqrt(sorted_eigenvalues(1));
+    b = 1 / sqrt(sorted_eigenvalues(2));
+
+    % Generate ellipse coordinates
+    theta = linspace(0, 2*pi, 100);
+    ellipse_x = a * cos(theta);
+    ellipse_y = b * sin(theta);
+    ellipse_coords = [ellipse_x; ellipse_y];
+    rotated_ellipse = sorted_eigenvectors * ellipse_coords;
+
+    % Most and least observable directions
+    most_observable_vector = sorted_eigenvectors(:, 1);
+    least_observable_vector = sorted_eigenvectors(:, 2);
+
+    % Plot
+    figure;
+    plot(rotated_ellipse(1, :), rotated_ellipse(2, :), 'k-', 'LineWidth', 1.5);
+    hold on;
+    quiver(0, 0, most_observable_vector(1), most_observable_vector(2), a, ...
+        'Color', 'b', 'LineWidth', 1.5, 'MaxHeadSize', 2);
+    quiver(0, 0, least_observable_vector(1), least_observable_vector(2), b, ...
+        'Color', 'r', 'LineWidth', 1.5, 'MaxHeadSize', 2);
+    xlabel(xlabel_str, 'Interpreter', 'latex', 'FontSize', 14);
+    ylabel(ylabel_str, 'Interpreter', 'latex', 'FontSize', 14);
+    title(title_str, 'Interpreter', 'latex', 'FontSize', 16);
+    legend('Ellipsoid', 'Most Observable', 'Least Observable', 'Location', 'best');
+    grid on;
+    axis equal;
+    hold off;
+end
+
 % Theoretical parameters
 G = 9.81;  % Gravity (m/s^2)
 R = 0.4064;  % Length of pendulum (16 inches in meters)
@@ -119,6 +242,18 @@ X0 = [theta(1); d_theta(1)];
 Duration = length(time);
 Ts = time(2);
 X_theoretical = simulate_system(G, R, M, B, Ts, Duration, X0);
+
+% Compute and plot original observability ellipsoid
+plot_observability_ellipsoid_system(G, R, M, B, Ts, ...
+    'Original Observability Ellipsoid', ...
+    '$\theta$ (Angular Displacement)', ...
+    '$\dot{\theta}$ (Angular Velocity)');
+
+% Compute and plot transformed observability ellipsoid
+plot_transformed_observability_ellipsoid(G, R, M, B, Ts, ...
+    'Transformed Observability Ellipsoid', ...
+    '$z_1$ (Transformed State 1)', ...
+    '$z_2$ (Transformed State 2)');
 
 % Plot results
 figure;
