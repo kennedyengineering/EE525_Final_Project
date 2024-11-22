@@ -75,42 +75,6 @@ plot(time(1:end-1), d_theta, 'DisplayName', 'Angular Velocity (rad/s)');
 title('Observed Pendulum Angle and Angular Velocity');
 legend;
 
-
-% Function to Compute and Plot the Ellipsoid
-function [x_coords,y_coords] = ellipse2(G,Npoints)
-    %% Draw the perimeter of the ellipsoid in R^2 such that x'*G*x = 1
-    % Citation:
-    % https://www.mathworks.com/matlabcentral/answers/86615−how−to−plot−an−ellipse
-    [V,E] = eigs(G,2,'smallestabs'); % Index 1 will be smallest, so major axis.
-    E = diag(E);
-    b = 1/sqrt(max(E));
-    a = 1/sqrt(min(E));
-    switch nargin
-        case 2
-            t = linspace(0,2*pi,Npoints);
-        case 1
-            t = linspace(0,2*pi,1e2);
-        otherwise
-            error('ellipse2:nargin','Unexpected number of input arguments.');
-    end
-    % This gives a normal ellipse with major axis dead horizontal.
-    x = a*cos(t);
-    y = b*sin(t);
-    % V(1,2) is vertical component of semi−major axis endpoint.
-    % V(1,1) is horizontal component of semi−major axis endpoint.
-    theta = atan2(V(1,2),V(1,1));
-    % Rotation matrix
-    R = [cos(theta), -sin(theta);
-        sin(theta), cos(theta)];
-    % Rotate coordinates of normal ellipse
-    C = R*[x;y];
-    x_coords = C(1,:);
-    y_coords = C(2,:);
-    if nargout == 0
-        plot(x_coords,y_coords);
-    end
-end
-
 % Define the model
 function x = simulate_system(g, r, m, b, ts, duration, x0)
     % Parameters
