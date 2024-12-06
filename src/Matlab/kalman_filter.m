@@ -198,13 +198,15 @@ Phi = [1, dt; 0, 1];
 Q = eye(2);
 
 % Define measurement data
-Z = [accelZ; gyroX];
+theta = asin(accelZ/g);
+Z = [theta; gyroX];
 
-% Define state-to-measurement matrix (approx asin(Az/g) as Az/g)
-H = [1/g, 0; 0, 1];
+% Define state-to-measurement matrix
+H = eye(2);
 
 % Define measurement error covariance
-R = diag([varAccelZ, varGyroX]);
+varTheta = var(theta);
+R = diag([varTheta, varGyroX]);
 
 % Setup filter
 Horizon = length(time);
@@ -254,13 +256,15 @@ Phi = expm(Phi_c*dt);
 Q = eye(2);
 
 % Define measurement data
-Z = [accelZ; gyroX];
+theta = asin(accelZ/g);
+Z = [theta; gyroX];
 
-% Define state-to-measurement matrix (approx asin(a/b) as a/b)
-H = [1/g, 0; 0, 1];
+% Define state-to-measurement matrix
+H = eye(2);
 
 % Define measurement error covariance
-R = diag([varAccelZ, varGyroX]);
+varTheta = var(theta);
+R = diag([varTheta, varGyroX]);
 
 % Setup filter
 Horizon = length(time);
