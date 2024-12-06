@@ -89,7 +89,7 @@ U = [gyroX;
      gyroZ];
 
 % Define control input noise covariance
-Q = diag([varGyroX, varGyroY, varGyroZ,0,0,0]);
+Q = diag([varGyroX, varGyroY, varGyroZ,0,0,0]); % 1e-6 works well for bias variance
 
 % Define state to measurement matrix
 H = [1,0,0,0,0,0;
