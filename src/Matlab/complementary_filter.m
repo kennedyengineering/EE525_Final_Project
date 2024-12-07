@@ -53,9 +53,78 @@ gyroY = data{:, matches(data.Properties.VariableNames, 'GyroY')}';
 gyroZ = data{:, matches(data.Properties.VariableNames, 'GyroZ')}';
 
 %% Complementary Filter (with control input)
+
+
+%% Calculate optimal filter parameters using PSD analysis
+dt = 0.008;
+
+%% Calculate optimal filter parameters using PSD analysis
+% First, compute static angle measurements from accelerometer
+static_accel_angle = atan2(staticAccelY, sqrt(staticAccelX.^2 + staticAccelZ.^2));
+
+% Calculate sampling frequency
+fs = 1/dt;
+
+% Calculate PSDs for both sensors from static data
+[psd_accel, f_accel] = periodogram(static_accel_angle, [], [], fs, 'psd');
+[psd_gyro, f_gyro] = periodogram(staticGyroX, [], [], fs, 'psd');
+
+% Convert to dB for easier comparison
+psd_accel_db = 10*log10(psd_accel);
+psd_gyro_db = 10*log10(psd_gyro);
+
+% Find crossover frequency more robustly
+% First, ensure we're comparing at the same frequencies
+differences = psd_accel_db - psd_gyro_db;
+zero_crossings = find(diff(sign(differences)) ~= 0);
+
+if ~isempty(zero_crossings)
+    % Take the first crossing point
+    crossover_idx = zero_crossings(1);
+    crossover_freq = f_accel(crossover_idx);
+else
+    % If no crossing found, use a default frequency based on pendulum dynamics
+    % This is a fallback value - you might want to adjust based on your system
+    crossover_freq = 1.0;  % Hz
+    fprintf('Warning: No PSD crossover found, using default frequency of 1 Hz\n');
+end
+
+% Calculate optimal time constant and alpha values
+T = 1/(2*pi*double(crossover_freq));
+alpha_angle_optimal = T/(T + dt);
+alpha_velocity_optimal = alpha_angle_optimal * 0.95;
+
+% Visualize the PSDs
+figure;
+semilogx(f_accel, psd_accel_db, 'DisplayName', 'Accelerometer');
+hold on;
+semilogx(f_gyro, psd_gyro_db, 'DisplayName', 'Gyroscope');
+if ~isempty(zero_crossings)
+    plot(crossover_freq, psd_accel_db(crossover_idx), 'ro', 'DisplayName', 'Crossover Point');
+end
+title('Power Spectral Density Comparison');
+xlabel('Frequency (Hz)');
+ylabel('Power/Frequency (dB/Hz)');
+grid on;
+legend;
+
+fprintf('Optimal filter parameters:\n');
+fprintf('Crossover frequency: %.2f Hz\n', crossover_freq);
+fprintf('Time constant T: %.3f s\n', T);
+fprintf('Optimal alpha_angle: %.3f\n', alpha_angle_optimal);
+fprintf('Optimal alpha_velocity: %.3f\n', alpha_velocity_optimal);
+
+
+
+
+
+
+alpha_angle = alpha_angle_optimal;
+alpha_velocity = alpha_velocity_optimal;
+
 % Initialize complementary filter parameters
-alpha_angle = 0.96;    % High-pass filter coefficient for angle fusion
-alpha_velocity = 0.90;  % High-pass filter coefficient for velocity fusion
+% alpha_angle = 0.96;    % High-pass filter coefficient for angle fusion
+% alpha_velocity = 0.90;  % High-pass filter coefficient for velocity fusion
 complementary_angle = atan2(accelY(1), sqrt(accelX(1).^2 + accelZ(1).^2));
 dt = 0.008;
 
