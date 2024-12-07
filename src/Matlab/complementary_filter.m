@@ -54,32 +54,32 @@ gyroZ = data{:, matches(data.Properties.VariableNames, 'GyroZ')}';
 
 %% Complementary Filter (with control input)
 % Initialize complementary filter parameters
-alpha = 0.96;  % High-pass filter coefficient for gyro
-complementary_angle = atan2(accelY(1), sqrt(accelX(1).^2 + accelZ(1).^2));  % Initialize with first accelerometer reading
-dt = 0.008;  % Your sampling period
+alpha_angle = 0.96;    % High-pass filter coefficient for angle fusion
+alpha_velocity = 0.90;  % High-pass filter coefficient for velocity fusion
+complementary_angle = atan2(accelY(1), sqrt(accelX(1).^2 + accelZ(1).^2));
+dt = 0.008;
 
 % Arrays to store results
 num_samples = length(time);
 complementary_angles = zeros(1, num_samples);
-angular_velocities = zeros(1, num_samples);
+complementary_velocities = zeros(1, num_samples);
 
 % Store initial values
 complementary_angles(1) = complementary_angle;
-angular_velocities(1) = gyroX(1);
+complementary_velocities(1) = gyroX(1);
 
 % Run complementary filter
 for k = 2:num_samples
-    % Predict angle using gyroscope data
+    % Angle estimation
     gyro_angle = complementary_angles(k-1) + gyroX(k)*dt;
-
-    % Get accelerometer angle
     accel_angle = atan2(accelY(k), sqrt(accelX(k)^2 + accelZ(k)^2));
+    complementary_angles(k) = alpha_angle * gyro_angle + (1-alpha_angle) * accel_angle;
 
-    % Combine using complementary filter
-    complementary_angles(k) = alpha * gyro_angle + (1-alpha) * accel_angle;
-
-    % Store angular velocity (could be filtered if desired)
-    angular_velocities(k) = gyroX(k);
+    % Velocity estimation
+    % Calculate velocity from accelerometer angle changes
+    accel_velocity = (accel_angle - atan2(accelY(k-1), sqrt(accelX(k-1)^2 + accelZ(k-1)^2))) / dt;
+    % Combine with gyro measurement
+    complementary_velocities(k) = alpha_velocity * gyroX(k) + (1-alpha_velocity) * accel_velocity;
 end
 
 % Plot results
@@ -93,8 +93,8 @@ legend;
 grid on;
 
 subplot(2,1,2);
-plot(time, angular_velocities, 'DisplayName', 'Angular Velocity');
-title('Angular Velocity');
+plot(time, complementary_velocities, 'DisplayName', 'Angular Velocity');
+title('Complementary Filter - Angular Velocity');
 ylabel('Angular Velocity (rad/s)');
 xlabel('Time (s)');
 legend;
