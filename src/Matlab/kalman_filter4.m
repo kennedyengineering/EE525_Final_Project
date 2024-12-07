@@ -126,7 +126,6 @@ end
 figure;
 title('Kalman Filter Orientation Estimation');
 hold on;
-plot(time, gyroX, 'DisplayName', 'UF Roll');
 plot(time, XHat(1, :), 'DisplayName', 'Roll');
 plot(time, XHat(2, :), 'DisplayName', 'D Roll');
 ylabel('Rad'); xlabel('Time [ms]');
