@@ -26,13 +26,36 @@ gX = dynamicData{:, matches(dynamicData.Properties.VariableNames, 'GyroX')}';
 gY = dynamicData{:, matches(dynamicData.Properties.VariableNames, 'GyroY')}';
 gZ = dynamicData{:, matches(dynamicData.Properties.VariableNames, 'GyroZ')}';
 
+%% Calculate Theoretical Optimal Alpha and Beta
+
+% Noise variance for accelerometer (angle from static data)
+sThetaAccel = atan2(sAY, sqrt(sAX.^2 + sAZ.^2));
+varAccelAngle = var(sThetaAccel); % Variance of accelerometer angle
+varGyro = var(sGX); % Variance of gyroscope noise
+
+% Theoretical alpha (angle fusion)
+alpha = varAccelAngle / (varAccelAngle + varGyro * dt^2);
+fprintf('Theoretical alpha (angle fusion): %.3f\n', alpha);
+
+%% Precompute Accelerometer-Based Angles
+theta_accel = atan2(aY, sqrt(aX.^2 + aZ.^2)); % Compute all accelerometer-based angles
+
+% Angular velocity derived from accelerometer angles
+theta_dot_accel = diff(theta_accel) / dt; % Angular velocity from consecutive accelerometer angles
+
+% Noise variance for dynamic data (angular velocity)
+varAccelVel = var(theta_dot_accel); % Variance of accel-derived velocity
+varGyroVel = var(gX); % Variance of gyroscope angular velocity
+
+% Theoretical beta (velocity fusion)
+beta = varAccelVel / (varAccelVel + varGyroVel);
+fprintf('Theoretical beta (velocity fusion): %.3f\n', beta);
+
 %% Complementary Filter Setup
 n = length(time); % Number of data points
 theta = zeros(1, n); % Initialize fused angle array
 theta_gyro = zeros(1, n); % Gyroscope angle
 theta_accel = zeros(1, n); % Accelerometer angle
-
-alpha = 0.98; % Complementary filter constant
 
 % Initial angle (from accelerometer)
 theta(1) = atan2(aY(1), sqrt(aX(1)^2 + aZ(1)^2));
@@ -49,49 +72,114 @@ for k = 2:n
     theta(k) = alpha * theta_gyro(k) + (1 - alpha) * theta_accel(k);
 end
 
-%% Plot Results
+%% Plot Results for Angular Position
 figure;
-plot(time, theta, 'DisplayName', 'Fused Angle');
+% Plot fused angle
+plot(time, theta, 'DisplayName', 'Fused Angle (Complementary Filter)');
 hold on;
-plot(time, theta_gyro, 'DisplayName', 'Gyro Angle');
-plot(time, theta_accel, 'DisplayName', 'Accel Angle');
+
+% Plot gyroscope-only angle
+plot(time, theta_gyro, '--', 'DisplayName', 'Gyroscope-Only Angle');
+
+% Plot accelerometer-only angle
+plot(time, theta_accel, ':', 'DisplayName', 'Accelerometer-Only Angle');
+
+% Add legend and labels
 legend;
 xlabel('Time (s)');
 ylabel('Angle (rad)');
-title('Complementary Filter Output');
+title('Comparison of Fused Angle vs. Individual Sources');
 grid on;
+
+% Optional: Plot differences for analysis
+% figure;
+% plot(time, theta - theta_gyro, 'DisplayName', 'Difference: Fused vs Gyroscope');
+% hold on;
+% plot(time, theta - theta_accel, 'DisplayName', 'Difference: Fused vs Accelerometer');
+% legend;
+% xlabel('Time (s)');
+% ylabel('Difference (rad)');
+% title('Differences Between Fused Angle and Individual Sources');
+% grid on;
 
 %% Pendulum Parameters
 g = 9.81; % Gravity
 r = 1.0; % Length (meters)
 b = 0.05; % Damping coefficient
 m = 1.0; % Mass (kg)
-beta = 0.98; % Complementary filter constant for angular velocity
+
+% beta = 0.98; % Complementary filter constant for angular velocity
 
 %% Initialize Angular Velocity
-theta_dot = zeros(1, n); % Fused angular velocity
-% theta_dot_model = zeros(1, n); % Model-predicted angular velocity
+theta_dot = zeros(1, n-1); % Fused angular velocity
 
 %% Loop through dynamic data
-for k = 2:n
+for k = 2:n-1
     % Gyroscope angular velocity (direct measurement)
     theta_dot_gyro = gX(k);
 
-    % Accelerometer-derived angular velocity (from consecutive angles)
-    theta_dot_accel = (theta_accel(k) - theta_accel(k-1)) / dt;
-
     % Complementary filter for angular velocity
-    theta_dot(k) = beta * theta_dot_gyro + (1 - beta) * theta_dot_accel;
+    theta_dot(k-1) = beta * theta_dot_gyro + (1 - beta) * theta_dot_accel(k-1); % Match indexing
 end
 
-%% Plot Results
+%% Plot Results for Angular Velocity
 figure;
-plot(time, theta_dot, 'DisplayName', 'Fused Angular Velocity');
+% Plot fused angular velocity
+plot(time(1:end-1), theta_dot, 'DisplayName', 'Fused Angular Velocity (Complementary Filter)');
 hold on;
-plot(time, gX, 'DisplayName', 'Gyro Angular Velocity');
-% plot(time, theta_dot_model, 'DisplayName', 'Model Angular Velocity');
+
+% Plot gyroscope-only angular velocity
+plot(time(1:end-1), gX(1:end-1), '--', 'DisplayName', 'Gyroscope-Only Angular Velocity');
+
+% Plot accelerometer-derived angular velocity
+plot(time(1:end-1), theta_dot_accel, ':', 'DisplayName', 'Accelerometer-Derived Angular Velocity');
+
+% Add legend and labels
 legend;
 xlabel('Time (s)');
 ylabel('Angular Velocity (rad/s)');
-title('Complementary Filter Output for Angular Velocity');
+title('Comparison of Fused Angular Velocity vs. Individual Sources');
 grid on;
+
+%% Initialize Uncertainty Tracking
+var_theta = zeros(1, n); % Variance of fused angle (theta)
+var_theta(1) = varAccelAngle; % Start with accelerometer variance
+
+var_theta_dot = zeros(1, n-1); % Variance of fused angular velocity (theta_dot)
+var_theta_dot(1) = varGyroVel; % Start with gyroscope variance
+
+%% Loop through dynamic data (tracking uncertainties)
+for k = 2:n
+    % Gyroscope variance for angle (propagated over time)
+    var_theta_gyro = var_theta(k-1) + varGyro * dt^2;
+
+    % Variance of the fused angle (complementary filter)
+    var_theta(k) = alpha^2 * var_theta_gyro + (1 - alpha)^2 * varAccelAngle;
+
+    if k < n
+        % Gyroscope variance for angular velocity (constant noise)
+        var_theta_dot_gyro = varGyroVel;
+
+        % Accelerometer variance for angular velocity (from diff)
+        var_theta_dot_accel = varAccelVel;
+
+        % Variance of fused angular velocity (complementary filter)
+        var_theta_dot(k) = beta^2 * var_theta_dot_gyro + (1 - beta)^2 * var_theta_dot_accel;
+    end
+end
+
+figure;
+plot(time, sqrt(var_theta), 'DisplayName', 'Uncertainty in Fused Angle (std dev)');
+xlabel('Time (s)');
+ylabel('Uncertainty (rad)');
+title('Uncertainty in Fused Angle Over Time (Complementary Filter)');
+grid on;
+legend;
+
+figure;
+plot(time(1:end-1), sqrt(var_theta_dot), 'DisplayName', 'Uncertainty in Fused Angular Velocity (std dev)');
+xlabel('Time (s)');
+ylabel('Uncertainty (rad/s)');
+title('Uncertainty in Fused Angular Velocity Over Time (Complementary Filter)');
+grid on;
+legend;
