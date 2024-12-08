@@ -34,7 +34,7 @@ varAccelAngle = var(sThetaAccel); % Variance of accelerometer angle
 varGyro = var(sGX); % Variance of gyroscope noise
 
 % Theoretical alpha (angle fusion)
-alpha = varAccelAngle / (varAccelAngle + varGyro * dt^2);
+alpha = varAccelAngle^2 / (varAccelAngle^2 + varGyro^2 * dt^2);
 fprintf('Theoretical alpha (angle fusion): %.3f\n', alpha);
 
 %% Precompute Accelerometer-Based Angles
@@ -48,7 +48,7 @@ varAccelVel = var(theta_dot_accel); % Variance of accel-derived velocity
 varGyroVel = var(gX); % Variance of gyroscope angular velocity
 
 % Theoretical beta (velocity fusion)
-beta = varAccelVel / (varAccelVel + varGyroVel);
+beta = varAccelVel^2 / (varAccelVel^2 + varGyroVel^2);
 fprintf('Theoretical beta (velocity fusion): %.3f\n', beta);
 
 %% Complementary Filter Setup
