@@ -1,6 +1,6 @@
+%% Complementary Filter for Angle Estimation
 %% Setup
 clear; clc; close all;
-dt = 0.008;
 staticFile = "../../data/static/static_table_log_raw_4g_500dps.csv";
 dynamicFile = "../../data/vision2/usb_pendulum_log_raw_4g_500dps_1.csv";
 
@@ -34,6 +34,7 @@ varAccelAngle = var(sThetaAccel);
 varGyro = var(sGX);
 
 % Theoretical alpha (angle fusion)
+dt = 0.008;
 alpha = varAccelAngle / (varAccelAngle + varGyro * dt^2);
 fprintf('Theoretical alpha (angle fusion): %.3f\n', alpha);
 
