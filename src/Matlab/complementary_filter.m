@@ -1,6 +1,33 @@
 %% Complementary Filter for Angle Estimation
 %% Setup
 clear; clc; close all;
+
+%% Calculate Ground Truth
+% Define the path to the data file
+dataFilePath = "../../data/vision2_analysis/usb_pendulum_video_1_analysis.csv";
+
+% Check if the file exists
+if ~isfile(dataFilePath)
+    error('Data file does not exist: %s', dataFilePath);
+end
+
+% Read data from log file into a table
+data = readtable(dataFilePath);
+
+%% Setup Experimental Data
+timeVision = data{:, matches(data.Properties.VariableNames, 'Timestamp')};
+% Vision in seconds * 1000 to match IMU timestamps
+timeVision = timeVision * 1000;
+posX = data{:, matches(data.Properties.VariableNames, 'PosX')};
+posY = data{:, matches(data.Properties.VariableNames, 'PosY')};
+clickPosX = data{1, matches(data.Properties.VariableNames, 'ClkPosX')};
+clickPosY = data{1, matches(data.Properties.VariableNames, 'ClkPosY')};
+
+% Calculate ground truth angles
+vec = [posX, posY] - [clickPosX, clickPosY];
+ground_truth_theta = atan2(vec(:, 1), vec(:, 2));
+ground_truth_theta = ground_truth_theta - mean(ground_truth_theta);
+
 staticFile = "../../data/static/static_table_log_raw_4g_500dps.csv";
 dynamicFile = "../../data/vision2/usb_pendulum_log_raw_4g_500dps_1.csv";
 
@@ -26,6 +53,7 @@ gX = dynamicData{:, matches(dynamicData.Properties.VariableNames, 'GyroX')}';
 gY = dynamicData{:, matches(dynamicData.Properties.VariableNames, 'GyroY')}';
 gZ = dynamicData{:, matches(dynamicData.Properties.VariableNames, 'GyroZ')}';
 
+
 %% Calculate Theoretical Optimal Alpha and Beta
 
 % Noise variance for accelerometer (angle from static data)
@@ -40,6 +68,7 @@ fprintf('Theoretical alpha (angle fusion): %.3f\n', alpha);
 
 alpha = 0.99; % Empirically optimized alpha
 fprintf('Empirical alpha (angle fusion): %.3f\n', alpha);
+
 
 %% Complementary Filter Setup
 n = length(time);
@@ -62,17 +91,9 @@ for k = 2:n
     theta(k) = alpha * theta_gyro(k) + (1 - alpha) * theta_accel(k);
 end
 
-%% Plot Results for Angular Position
-figure('Position', [100, 100, 1000, 800]);
-plot(time, theta, 'DisplayName', 'Fused Angle (Complementary Filter)', 'LineWidth', 2.0);
-hold on;
-plot(time, theta_gyro, '--', 'DisplayName', 'Gyroscope-Only Angle', 'LineWidth', 1.5);
-plot(time, theta_accel, ':', 'DisplayName', 'Accelerometer-Only Angle', 'LineWidth', 1.5);
-legend('FontSize', 10, 'Location', 'best');
-xlabel('Time (s)', 'FontSize', 12);
-ylabel('Angle (rad)', 'FontSize', 12);
-title('Comparison of Fused Angle vs. Individual Sources', 'FontSize', 14);
-grid on;
+% Zero-mean the theta signal to match ground truth processing
+theta = theta - mean(theta);
+
 
 %% Initialize Uncertainty Tracking
 var_theta = zeros(1, n);
@@ -94,3 +115,48 @@ ylabel('Uncertainty (rad)', 'FontSize', 12);
 title('Uncertainty in Fused Angle Over Time (Complementary Filter)', 'FontSize', 14);
 grid on;
 legend('FontSize', 10, 'Location', 'best');
+
+
+% Plot comparison
+start = 1755;
+
+short_theta = theta(start:end);  % Also truncate theta data
+
+% Calculate the time offset needed to align the signals
+% You can do this by finding the delay between the start of oscillation
+time_offset = 14300;  % This is an estimate based on your plot, you may need to adjust
+
+% Adjust the IMU timestamps by subtracting the offset
+short_time = time(start:end) - time_offset;
+
+% Adjust end of time vision
+last_time = 946;
+timeVision = timeVision(1:last_time);
+ground_truth_theta = ground_truth_theta(1:last_time);
+
+% Calculate required sampling rate to get exactly 946 points
+n_samples = length(short_theta);
+sample_rate = floor(n_samples/last_time);  % This will give us how many points to skip
+
+% Resample short_theta and short_time to match ground truth length
+indices = round(linspace(1, length(short_theta), last_time));
+short_theta = short_theta(indices);
+short_time = short_time(indices);
+
+% Then in your plotting section:
+figure('Position', [100, 100, 1000, 800]);
+plot(short_time, short_theta, 'DisplayName', 'Fused Angle', 'LineWidth', 2.0);
+hold on;
+plot(timeVision, ground_truth_theta, '--', 'DisplayName', 'Observed', 'LineWidth', 1.5);
+legend('FontSize', 10, 'Location', 'best');
+xlabel('Time (s)', 'FontSize', 12);
+ylabel('Angle (rad)', 'FontSize', 12);
+title('Comparison of Fused Angle vs. Observed', 'FontSize', 14);
+grid on;
+
+% Calculate MSE and RMSE once
+% truncate theta
+MSE = mean((short_theta - ground_truth_theta').^2);
+
+% Print results once
+fprintf('Mean Squared Error: %.6f rad^2\n', MSE);
