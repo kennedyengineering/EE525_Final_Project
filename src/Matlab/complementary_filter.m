@@ -38,6 +38,9 @@ dt = 0.008;
 alpha = varAccelAngle / (varAccelAngle + varGyro * dt^2);
 fprintf('Theoretical alpha (angle fusion): %.3f\n', alpha);
 
+alpha = 0.99; % Empirically optimized alpha
+fprintf('Empirical alpha (angle fusion): %.3f\n', alpha);
+
 %% Complementary Filter Setup
 n = length(time);
 theta = zeros(1, n);
@@ -60,15 +63,15 @@ for k = 2:n
 end
 
 %% Plot Results for Angular Position
-figure;
-plot(time, theta, 'DisplayName', 'Fused Angle (Complementary Filter)');
+figure('Position', [100, 100, 1000, 800]);
+plot(time, theta, 'DisplayName', 'Fused Angle (Complementary Filter)', 'LineWidth', 2.0);
 hold on;
-plot(time, theta_gyro, '--', 'DisplayName', 'Gyroscope-Only Angle');
-plot(time, theta_accel, ':', 'DisplayName', 'Accelerometer-Only Angle');
-legend;
-xlabel('Time [s]');
-ylabel('Angle [rad]');
-title('Comparison of Fused Angle vs. Individual Sources');
+plot(time, theta_gyro, '--', 'DisplayName', 'Gyroscope-Only Angle', 'LineWidth', 1.5);
+plot(time, theta_accel, ':', 'DisplayName', 'Accelerometer-Only Angle', 'LineWidth', 1.5);
+legend('FontSize', 10, 'Location', 'best');
+xlabel('Time (s)', 'FontSize', 12);
+ylabel('Angle (rad)', 'FontSize', 12);
+title('Comparison of Fused Angle vs. Individual Sources', 'FontSize', 14);
 grid on;
 
 %% Initialize Uncertainty Tracking
@@ -84,10 +87,10 @@ for k = 2:n
     var_theta(k) = alpha^2 * var_theta_gyro + (1 - alpha)^2 * varAccelAngle;
 end
 
-figure;
-plot(time, sqrt(var_theta), 'DisplayName', 'Uncertainty in Fused Angle (std dev)');
-xlabel('Time (s)');
-ylabel('Uncertainty (rad)');
-title('Uncertainty in Fused Angle Over Time (Complementary Filter)');
+figure('Position', [100, 100, 1000, 800]);
+plot(time, sqrt(var_theta), 'DisplayName', 'Uncertainty in Fused Angle (std dev)', 'LineWidth', 1.5);
+xlabel('Time (s)', 'FontSize', 12);
+ylabel('Uncertainty (rad)', 'FontSize', 12);
+title('Uncertainty in Fused Angle Over Time (Complementary Filter)', 'FontSize', 14);
 grid on;
-legend;
+legend('FontSize', 10, 'Location', 'best');

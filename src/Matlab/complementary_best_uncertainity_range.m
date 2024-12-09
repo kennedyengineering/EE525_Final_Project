@@ -47,17 +47,28 @@ for i = 1:length(alphas)
     uncertainty_results(i, :) = sqrt(var_theta); % Store standard deviation (uncertainty)
 end
 
-%% Plot Refined Uncertainty
-figure;
+%% Plot Refined Uncertainty with Distinct Line Styles and Colors
+figure('Position', [100, 100, 1000, 800]);
 hold on;
+
+% Define line styles and colors
+lineStyles = {'-', '--', ':', '-.'}; % Different line styles
+colors = lines(length(alphas)); % Generate distinct colors automatically
+
 for i = 1:length(alphas)
-    plot(time, uncertainty_results(i, :), 'DisplayName', sprintf('Alpha = %.2f', alphas(i)));
+    % Cycle through line styles
+    lineStyle = lineStyles{mod(i-1, length(lineStyles)) + 1};
+    plot(time, uncertainty_results(i, :), 'DisplayName', ...
+        sprintf('Alpha = %.2f', alphas(i)), 'LineWidth', 1.5, ...
+        'LineStyle', lineStyle, 'Color', colors(i, :));
 end
-xlabel('Time (s)');
-ylabel('Uncertainty (rad)');
-title('Refined Uncertainty in Fused Angle for Alphas (0.8 to 1.0)');
-legend;
+
+xlabel('Time (s)', 'FontSize', 12);
+ylabel('Uncertainty (rad)', 'FontSize', 12);
+title('Refined Uncertainty in Fused Angle for Alphas (0.8 to 1.0)', 'FontSize', 14);
+legend('FontSize', 10, 'Location', 'best');
 grid on;
+hold off;
 
 %% Generate Table of Final Uncertainties
 final_uncertainties = uncertainty_results(:, end);
