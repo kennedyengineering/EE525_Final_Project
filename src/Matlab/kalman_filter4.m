@@ -81,7 +81,7 @@ B = [dt;
 U = gyroX;
 
 % Define control input noise covariance
-Q = diag([varGyroX, varGyroX, 0]); % 1e-6 works well for bias variance
+Q = diag([varGyroX*dt, varGyroX, 0]); % 1e-6 works well for bias variance
 
 % Define state to measurement matrix
 H = [1,0,0];
@@ -92,7 +92,9 @@ roll = atan2(accelY, sqrt(accelX.^2 + accelZ.^2));
 Z = roll;
 
 % Define measurement input noise covariance
-R = var(roll);
+staticRoll = atan2(staticAccelY, sqrt(staticAccelX.^2 + staticAccelZ.^2));
+
+R = var(staticRoll);
 
 % Setup filter
 Horizon = length(time);
