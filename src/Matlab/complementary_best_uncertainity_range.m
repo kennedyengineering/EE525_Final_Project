@@ -26,11 +26,11 @@ sThetaAccel = atan2(sAY, sqrt(sAX.^2 + sAZ.^2));
 varAccelAngle = var(sThetaAccel);
 varGyro = var(sGX);
 dt = 0.008;
-alpha_theoretical = varAccelAngle / (varAccelAngle + varGyro * dt^2);
+alpha_theoretical = varAccelAngle / (varAccelAngle + varGyro);
 fprintf('Theoretical alpha (angle fusion): %.3f\n', alpha_theoretical);
 
 %% Refined Alpha Range
-alphas = 0.8:0.01:0.99; % Narrow range with finer steps
+alphas = 0.8:0.01:1.0; % Narrow range with finer steps
 alphas =[alphas, alpha_theoretical]; % Add theoretical alpha
 n = length(time);
 uncertainty_results = zeros(length(alphas), n);
@@ -56,11 +56,18 @@ lineStyles = {'-', '--', ':', '-.'}; % Different line styles
 colors = lines(length(alphas)); % Generate distinct colors automatically
 
 for i = 1:length(alphas)
-    % Cycle through line styles
-    lineStyle = lineStyles{mod(i-1, length(lineStyles)) + 1};
-    plot(time, uncertainty_results(i, :), 'DisplayName', ...
-        sprintf('Alpha = %.2f', alphas(i)), 'LineWidth', 1.5, ...
-        'LineStyle', lineStyle, 'Color', colors(i, :));
+    if alphas(i) == alpha_theoretical
+        % Special styling for theoretical alpha
+        plot(time, uncertainty_results(i, :), 'DisplayName', ...
+            sprintf('Alpha = %.3f (Theoretical)', alphas(i)), 'LineWidth', 2, ...
+            'LineStyle', '--', 'Color', 'k');  % Black dashed line
+    else
+        % Cycle through line styles for other alphas
+        lineStyle = lineStyles{mod(i-1, length(lineStyles)) + 1};
+        plot(time, uncertainty_results(i, :), 'DisplayName', ...
+            sprintf('Alpha = %.2f', alphas(i)), 'LineWidth', 1.5, ...
+            'LineStyle', lineStyle, 'Color', colors(i, :));
+    end
 end
 
 xlabel('Time (s)', 'FontSize', 12);
@@ -69,9 +76,3 @@ title('Refined Uncertainty in Fused Angle for Alphas (0.8 to 1.0)', 'FontSize', 
 legend('FontSize', 10, 'Location', 'best');
 grid on;
 hold off;
-
-%% Generate Table of Final Uncertainties
-final_uncertainties = uncertainty_results(:, end);
-uncertainty_table_refined = table(alphas', final_uncertainties, ...
-    'VariableNames', {'Alpha', 'Final_Uncertainty'});
-disp(uncertainty_table_refined);

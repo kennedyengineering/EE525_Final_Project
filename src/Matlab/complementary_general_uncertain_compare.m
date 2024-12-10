@@ -26,7 +26,7 @@ sThetaAccel = atan2(sAY, sqrt(sAX.^2 + sAZ.^2));
 varAccelAngle = var(sThetaAccel);
 varGyro = var(sGX);
 dt = 0.008;
-alpha_theoretical = varAccelAngle / (varAccelAngle + varGyro * dt^2);
+alpha_theoretical = varAccelAngle / (varAccelAngle + varGyro);
 fprintf('Theoretical alpha (angle fusion): %.3f\n', alpha_theoretical);
 
 %% Initialize Variables for Comparison
@@ -50,17 +50,17 @@ end
 figure('Position', [100, 100, 1000, 800]);
 hold on;
 for i = 1:length(alphas)
-    plot(time, uncertainty_results(i, :), 'DisplayName', ...
-        sprintf('Alpha = %.2f', alphas(i)), 'LineWidth', 1.5);
+    if alphas(i) == alpha_theoretical
+        % Special label for theoretical alpha
+        plot(time, uncertainty_results(i, :), 'DisplayName', ...
+            sprintf('Alpha = %.3f (Theoretical)', alphas(i)), 'LineWidth', 2, 'LineStyle', '--');
+    else
+        plot(time, uncertainty_results(i, :), 'DisplayName', ...
+            sprintf('Alpha = %.1f', alphas(i)), 'LineWidth', 1.5);
+    end
 end
 xlabel('Time (s)', 'FontSize', 12);
 ylabel('Uncertainty (rad)', 'FontSize', 12);
 title('Uncertainty in Fused Angle for Different Alphas', 'FontSize', 14);
 legend('FontSize', 10, 'Location', 'best');
 grid on;
-
-%% Generate Table of Final Uncertainties
-final_uncertainties = uncertainty_results(:, end);
-uncertainty_table = table(alphas', final_uncertainties, 'VariableNames', ...
-    {'Alpha', 'Final_Uncertainty'});
-disp(uncertainty_table);

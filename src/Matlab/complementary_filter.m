@@ -63,8 +63,8 @@ varGyro = var(sGX);
 
 % Theoretical alpha (angle fusion)
 dt = 0.008;
-alpha = varAccelAngle / (varAccelAngle + varGyro * dt^2);
-fprintf('Theoretical alpha (angle fusion): %.3f\n', alpha);
+theoretical_alpha = varAccelAngle / (varAccelAngle + varGyro);
+fprintf('Theoretical alpha (angle fusion): %.3f\n', theoretical_alpha);
 
 alpha = 0.99; % Empirically optimized alpha
 fprintf('Empirical alpha (angle fusion): %.3f\n', alpha);
@@ -92,8 +92,7 @@ for k = 2:n
 end
 
 % Zero-mean the theta signal to match ground truth processing
-theta = theta - mean(theta);
-
+theta = detrend(theta, 'linear');   % Removes linear trend
 
 %% Initialize Uncertainty Tracking
 var_theta = zeros(1, n);
@@ -143,6 +142,8 @@ indices = round(linspace(1, length(short_theta), last_time));
 short_theta = short_theta(indices);
 short_time = short_time(indices);
 
+
+
 % Then in your plotting section:
 figure('Position', [100, 100, 1000, 800]);
 plot(short_time, short_theta, 'DisplayName', 'Fused Angle', 'LineWidth', 2.0);
@@ -160,3 +161,39 @@ MSE = mean((short_theta - ground_truth_theta').^2);
 
 % Print results once
 fprintf('Mean Squared Error: %.6f rad^2\n', MSE);
+
+% Additional plot for theoretical alpha comparison
+theta_theoretical = zeros(1, n);
+theta_theoretical(1) = atan2(aY(1), sqrt(aX(1)^2 + aZ(1)^2));
+
+% Loop for theoretical alpha
+for k = 2:n
+    theta_gyro_theoretical = theta_theoretical(k-1) + gX(k) * dt;
+    theta_accel_theoretical = atan2(aY(k), sqrt(aX(k)^2 + aZ(k)^2));
+    theta_theoretical(k) = theoretical_alpha * theta_gyro_theoretical + ...
+        (1 - theoretical_alpha) * theta_accel_theoretical;
+end
+
+% Zero-mean and detrend
+theta_theoretical = detrend(theta_theoretical, 'linear');
+
+% Resample theoretical data to match ground truth length
+short_theta_theoretical = theta_theoretical(start:end);
+short_theta_theoretical = short_theta_theoretical(indices);
+
+% Create new figure for comparison
+figure('Position', [100, 100, 1000, 800]);
+plot(short_time, short_theta_theoretical, '-', 'LineWidth', 2.0, ...
+    'DisplayName', sprintf('Theoretical (α = %.3f)', theoretical_alpha));
+hold on;
+plot(timeVision, ground_truth_theta, '--', 'LineWidth', 1.5, ...
+    'DisplayName', 'Observed');
+legend('FontSize', 10, 'Location', 'best');
+xlabel('Time (s)', 'FontSize', 12);
+ylabel('Angle (rad)', 'FontSize', 12);
+title('Comparison of Theoretical vs Empirical Alpha Performance', 'FontSize', 14);
+grid on;
+
+% Calculate MSE for theoretical alpha
+MSE_theoretical = mean((short_theta_theoretical - ground_truth_theta').^2);
+fprintf('Theoretical Alpha MSE: %.6f rad^2\n', MSE_theoretical);
