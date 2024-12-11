@@ -26,11 +26,11 @@ sThetaAccel = atan2(sAY, sqrt(sAX.^2 + sAZ.^2));
 varAccelAngle = var(sThetaAccel);
 varGyro = var(sGX);
 dt = 0.008;
-alpha_theoretical = varAccelAngle / (varAccelAngle + varGyro);
+alpha_theoretical = varAccelAngle / (varAccelAngle + varGyro * dt);
 fprintf('Theoretical alpha (angle fusion): %.3f\n', alpha_theoretical);
 
 %% Initialize Variables for Comparison
-alphas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, alpha_theoretical]; % Alpha values to compare
+alphas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, alpha_theoretical]; % Alpha values to compare
 n = length(time);
 uncertainty_results = zeros(length(alphas), n);
 

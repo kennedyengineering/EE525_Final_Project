@@ -63,7 +63,7 @@ varGyro = var(sGX);
 
 % Theoretical alpha (angle fusion)
 dt = 0.008;
-theoretical_alpha = varAccelAngle / (varAccelAngle + varGyro);
+theoretical_alpha = varAccelAngle / (varAccelAngle + varGyro * dt);
 fprintf('Theoretical alpha (angle fusion): %.3f\n', theoretical_alpha);
 
 alpha = 0.99; % Empirically optimized alpha
